@@ -45,18 +45,6 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
-% Listings para código
-\usepackage{listings}
-\lstset{
-  basicstyle=\ttfamily\small,
-  frame=single,
-  breaklines=true,
-  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
-  columns=fullflexible,
-  keepspaces=true,
-  numbers=none
-}
-
 % Bibliografía
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \addbibresource{bibliografia.bib}
@@ -69,14 +57,30 @@
   urlcolor=cyan,
   citecolor=black
 }
+
+\usepackage[autostyle=true]{csquotes}
+% Listings para código
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  columns=fullflexible,
+  keepspaces=true,
+  numbers=none,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+           {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+           {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{\textquestiondown}}1 {¡}{{\textexclamdown}}1
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                          DATOS DEL TRABAJO                                  %
 %                                                                             %
 % título alumno, titor y curso académico                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Transcripción Automática de Fechas con Whisper}
-\author{Gómez Corral, Miquel}
+\title{Comparativa implementación Asistente de Voz: \\Local VS Cloud}
+\author{Andrés Pachecho, \\ Miquel Gómez}
 % \tutor{No}
 % \curs{MUIARFID}
 
@@ -134,233 +138,269 @@
 \mainmatter
 
 \chapter{Introducción}
-Este trabajo aborda el uso de modelos basados en transformers para la transcripción automática de fechas en formato textual. El modelo base a partir del cual se han construido las arquitecturas es Whisper, un modelo de reconocimiento automático del habla. 
 
-Todo el código relacionado con la implementación del modelo, ha sido provisto como material de la asignatura. El trabajo se ha basado en hacer uso de este a partir de modificaciones a nivel de preprocesamiento, tokenización, entrenamiento y evaluación.
+En el contexto de la vida cotidiana, los asistentes de voz se han convertido en herramientas muy usadas por su gran versatilidad. Desde los primeros \textit{Hey Siri}, a los \textit{Ok Google} o \textit{Alexa}, los asistentes virtuales han llegado a multitud de hogares y ayudan en el día a día de diversas tareas.
+
+Al principio, estos asistentes eran muy limitados y no tenían apenas capacidad de respuesta. Eran todo instrucciones predefinidas que seguían casi como \texttt{if else}. Las voces y las frases que estas podían decir estaban pre-grabadas, por lo que no se podían salir de ese pequeño conjunto de respuestas. 
+
+Hoy en día, esto ha cambiado bastante. De primeras, la llegada de los modelos de lenguaje, capaces de generalizar las respuestas que puede dar un sistema, soluciona las limitaciones de '\textit{a qué puede contestar el sistema}', ahora es prácticamente a todo. Luego, si se le suma que los modelos de voz modernos son capaces de pronunciar cualquier frase, palabra o fonema en casi todos los idiomas, tenemos la receta perfecta para crear un sistema que responda a cualquier petición en segundos.
+
+En este trabajo, se pretende abordar la creación de un sistema de preguntas y respuestas mediante un asistente de voz virtual. En su conjunto, el proyecto consiste en una investigación para analizar la viabilidad de desarrollar un asistente de voz propio, evaluando y confrontando el rendimiento, la facilidad de desarrollo y la complejidad de utilizar alternativas totalmente locales frente a soluciones basadas en modelos de diferentes proveedores \textit{cloud} (en la nube) para cada una de las fases (transcripción, RAG con información local y web, y síntesis de voz).
+
+A lo largo de las secciones se habla de la estructura que se ha seguido, con qué intenciones, con qué tecnologías se ha implementado y cómo se ha ajustado.
+
+\subsubsection{Uso de herramientas y LLMs}
+Para el desarrollo de este trabajo, se ha hecho uso de herramientas LLM en diferentes puntos. 
+
+\noindent Primero, para la interfaz gráfica, se ha partido de una plantilla y se ha usado Copilot para que realice la integración con el resto de la app (archivo \texttt{app/app.py}). Luego, también se ha usado Claude Code, muy útil a la hora de resolver de conflictos entre versiones. Por último, para revisar la redacción de esta memoria, se ha hecho uso de Gemini.
+
+Todo se ha hecho con la supervisión de los autores y con control total sobre lo que hacían estas herramientas.
 
 \subsubsection{Hardware utilizado}
-Los experimentos se han realizado en mi máquina personal: GPU NVIDIA RTX 5070 (12 GB VRAM), procesador AMD Ryzen 9 9000X, 64 GB de RAM y Ubuntu 24.04 LTS.
+Los experimentos y la demo se han lanzado en una de nuestras máquina personales: GPU NVIDIA RTX 5070 (12 GB VRAM), procesador AMD Ryzen 9 9000X, 64 GB de RAM y Ubuntu 24.04 LTS.
 
-Todos los modelos han podido ser entrenados y evaluados sin problemas. 
+Todos los modelos han podido ser usados sin problemas. 
 
-\section{Cambios principales}
-Para facilitar el uso del código base, se han realizado una serie de modificaciones.
-
-\begin{itemize}
-  \item En los datasets en inglés, se ha encontrado la que frase \texttt{'tuesday thank you.'} aparece siempre con el punto al final. Por eliminar redundancias y mejorar la calidad de los datos, se ha decidido eliminar todos los signos de puntuación en el preprocesamiento.
-  \item Se han 'parametrizado' los principales elementos del código como las rutas, los tokens especiales (PAD, SOS, EOS) o algunos parámetros para facilitar cambios entre los ejercicios
-\end{itemize}
-
-\section{Notebooks entregados}
-Se han entregados 4 notebooks. A continuación la lista de los nombres con una breve descripción del contenido de cada uno.
-\begin{itemize}
-  \item \texttt{ejercicio-1-es.ipynb}: Ejercicio 1 en español.
-  \item \texttt{ejercicio-1-en.ipynb}: Ejercicio 1 en inglés.
-  \item \texttt{ejercicio-2.ipynb}: Ejercicio 2 (multilingüe con instrucciones).
-  \item \texttt{ejercicio-2-extra.ipynb}: Ejercicio 2 con implementación Top-K y Top-P en inferencia.
-  \item \texttt{ejercicio-3.ipynb}: Ejercicio 3 (llamada a funciones).
-\end{itemize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                        Notebooks base                                     %
+%                        Planteamiento del proyecto                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Ejercicios}
-\section{Ejercicio 1: Modelos monolingües}
-En este ejercicio se ha creado la estructura principal de los Notebooks seguida por el resto de ejercicios.
+\chapter{Planteamiento del proyecto}
+Para poder implementar un asistente capaz responder preguntas de forma confiable como el que se plantea, hay que tener en cuenta diversos puntos clave.
 
-Como se ha mencionado, se han parametrizado las principales variables del código. Se ha detectado el problema con los signos de puntuación en inglés y se ha estructurado todo el procesamiento como se indica en el ejercicio.
+Primero que todo, el sistema debe ser cómodo de usar e interactuar con él. Para esto, la opción más intuitiva es que funcione mediante voz. 
 
-A la hora de entrenar los modelos, parecía que el modelo en español necesitamos algunos epochs más para entrenar. Tras 15 epochs para el modelo en español y 10 para el modelo en inglés, se han obtenido los siguientes resultados:
+Si se piensa en que situaciones se suelen usar estos asistentes, lo primero que viene a la mente son situaciones en las que no es posible hacer uso de tecnología, como al conducir, cocinar o incluso en la ducha. Son situaciones en las que se tienen las manos ocupadas y por lo tanto, no se puede hacer uso ni de dispositivos móviles, ni de mucho menos teclado y ratón. Por lo que hacer las preguntas mediante voz, es la solución perfecta.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{lr}
-	\toprule
-	\textbf{Idioma} & \textbf{WER \%} \\
-	\midrule
-	Español & 1.36 \\
-	Inglés & 1.21 \\
-	\bottomrule
-\end{tabular}
-\caption{Resultados en transcripción automática de fechas monolingüe: WER Inglés y Español.}
-\label{tab:wer_ej1}
-\end{table}
+Luego, este sistema tiene que poder interpretar la instrucción, lo que requiere de un sistema capaz de entender preguntas genéricas de cualquier ámbito. La tecnología que mejor responde a esta necesidad son los LLMs, no requieren de mayor presentación. Ahora, estos traen consigo algunos problemas por su misma naturaleza, haciendo que su uso no sea simple: esto modelos no tienen información de nuestro contexto concreto, no tienen información actualizada del mundo en tiempo real, y pueden llegar a alucinar datos solo por querer darnos una respuesta.
 
-\section{Ejercicio 2: Modelo multilingüe}
-Partiendo del código del ejercicio 1, se ha implementado un modelo multilingüe que recibe instrucciones para identificar el idioma de la entrada. De nuevo, se han limpiado los signos de puntuación en inglés, pero ahora, se han juntado los datasets de ambos idiomas para crear un dataset combinado con todas las combinaciones: Transcripción en español, Transcripción en inglés, Traducción del Inglés al Español y Traducción del Español al Inglés.
+Es así que la mejor forma de introducir un LLM en un sistema de este estilo, es mediante un RAG. Un RAG permite dotar al LLM de información específica de nuestro contexto, y se puede generalizar su uso con cualquier tipo de documentos. Con esto, se soluciona el primer problema, pero aún quedaría el segundo. Para permitir que el sistema pueda tener datos actualizados, hay que darle otra herramienta: el acceso a internet, será la segunda fuente de información fiable que tendrá el sistema. Con esto, estará provisto de todo lo necesario para responder a nuestras preguntas.
 
-Se han añadido los tokens especiales para identificar el idioma de la entrada y salida, y se ha hecho que el dataset de entrenamiento ponga antes de cada frase el token correspondiente a la instrucción. Luego, para la generación, se añade el token de instrucción antes de entrar al bucle, justo después del token SOS.
+Ahora bien, que pueda responder a las preguntas, no significa que las pueda hacer llegar al usuario. En este punto falta el último paso, que el asistente de verdad se comunique de vuelta. De nuevo, la forma de hacerlo es mediante voz, por lo que el sistema deberá implementar un sistema de voz o Text to Speech.
 
-Con esto, se han obtenido los siguientes resultados tras 10 epochs de entrenamiento:
-\begin{table}[H]
-\centering
-\begin{tabular}{lr}
-	\toprule
-	\textbf{Idioma} & \textbf{WER \%} \\
-	\midrule
-	Bilingüe inglés y español & 4.20 \\
-	\bottomrule
-\end{tabular}
-\caption{Resultados en transcripción automática de fechas monolingüe: WER Inglés y Español.}
-\label{tab:wer_ej1}
-\end{table}
+Con esto, el asistente estará dotado de la capacidad de responder a todo en tiempo real, con información fiable y actualizada, y todo ello mediante voz.
 
-Vemos que el rendimiento empeora de forma significative respecto a los modelos monolingües. Esto es algo esperado, ya que el modleo tiene que aprender a hacer 4 tareas diferentes (aun que parecidas) en lugar de una. Aún así el resultado es muy bueno.
+\section{Proveedores Cloud y Complejidad del Ecosistema}
+A lo largo de este proyecto, si bien se partió con el horizonte de tener la totalidad del asistente trabajando en local, se introdujo como contraparte evaluar la viabilidad con servicios en la nube para percibir los cambios en fluidez y calidad. Sin embargo, recurrir a proveedores \textit{cloud} añadió un grado de complejidad técnica y burocrática notable al proceso de desarrollo.
+ 
+Inicialmente, el planteamiento ideal era concentrar y delegar todas estas tareas (STT, LLMs, Text-to-Speech) a un único gigante de la nube, en este caso AWS. Esta unificación pretendía simplificar la gestión e integración, pero rápidamente emergieron problemas. Intentamos usar los servicios completos de AWS, pero nos encontramos con trabas limitantes a nivel de validación de cuentas, suscripciones bloqueadas y fallos donde el servicio simplemente no funcionaba tras el alta de la tarjeta. Aunque el pago y validación deberían ser un trámite rápido, las demoras burocráticas del proveedor forzaron la paralización de la solución centralizada.
 
-\section{Ejercicio 3: Llamadas a funciones}
-En este ejercicio de nuevo, parte del notebook creado en el ejercicio 1, y se ha hecho el mismo preprocesamiento que en los ejercicios anteriores.
-
-Ahora, el tokenizador tiene más entrada, ya que tiene que manejar las palabras y las llamadas a funciones. Ya que la cantidad de opciones para llamar a funciones no era muy grande, se ha decidido que cada llamada a función, con su parámetro, sea un token único. Esto nos deja con tokens como:
-
-\noindent
-\begin{minipage}[t]{0.48\textwidth}
-\textbf{next\_day:}
-\begin{itemize}[topsep=0pt]
-  \item "next\_day('friday')"
-  \item "next\_day('monday')"
-  \item "next\_day('thursday')"
-  \item "next\_day('tuesday')"
-  \item "next\_day('wednesday')"
+A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversificar el abanico y orquestar el sistema como un collage de distintos proveedores externos para poder solventar cada fase con su nivel de excelencia:
+\begin{itemize}
+    \item \textbf{GROQ:} Se empleó para el uso del LLM que gestiona y genera la lógica conversacional.
+    \item \textbf{Hugging Face:} Para la obtención de los modelos de representación vectorial (\textit{embeddings}), vitales para el RAG.
+    \item \textbf{Tavily:} Se recurrió a esta API para la interconexión específica con las búsquedas web.
+    \item \textbf{AWS (limitado):} Tras sortear algunas barreras iniciales, logramos configurarlo al menos como el proveedor final de \textit{Text to Speech} (TTS).
 \end{itemize}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\textbf{relative\_day:}
-\begin{itemize}[topsep=0pt]
-  \item "relative\_day(+1)"
-  \item "relative\_day(+2)"
-  \item "relative\_day(+3)"
+ 
+Desde una perspectiva crítica, ensamblar estas piezas dispares es bastante engorroso frente al modelo monolítico local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), estructuras de conexión, cuotas de uso y esquemas de precios. Toda esta fragmentación eleva la complejidad de despliegue y ensucia la limpieza del código en comparación a cuando se controla el ecosistema enteramente bajo nuestra propia máquina, a pesar de que su latencia y respuesta sea altamente competente.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                             Desarrollo                                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Desarrollo}
+En esta sección se redacta como se han implementado todas las partes del sistema planteado en el apartado anterior. Se comentan las tecnologías utilizadas y las dificultades observadas. 
+
+Primero que todo, se presenta el esquema que representa la arquitectura desarrollada:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{images/structure.png}
+    \caption{Estructura del sistema del asistente de voz}
+    \label{fig:structure}
+\end{figure}
+
+Como se ha comentado, el sistema se divide en cuatro bloques principales: Speech to Text, LLM, acceso a RAG y a búsqueda en la web y Text to Speech. A continuación, se explicarán cada uno de ellos.
+
+En el esquema no se incluye la interfaz gráfica, ya que esta solo usa el sistema de forma abstracta. Se encarga de gestionar la interacción con el usuario, grabar el audio y reproducir la respuesta final.
+
+\clearpage
+
+\section{Speech to Text (Whisper)}
+Para la interpretación de los audios y solucionar la parte del sistema encargada del ASR o Speech to Text, se ha elegido el modelo Whisper \cite{radford-whisper-2022}.
+
+Whisper es un sistema de reconocimiento automático del habla (ASR) desarrollado por OpenAI. Es un modelo muy potente ya que es capaz no solo de transcribir, sino también de realizar traducción e identificar la lengua de forma nativa. Su arquitectura se basa en \textbf{Transformers} de tipo \textbf{encoder-decoder}, con un entrenamiento exhaustivo sobre miles de horas de audio multilingüe.
+
+El sistema se ha evaluado en dos modalidades: una versión \textbf{local} y una versión basada en la \textbf{nube} a través de web (API). En ambas modalidades, el modelo ha demostrado un funcionamiento excelente, resultando muy rápido y fácil de implementar. Se ha observado que, a niveles prácticos, la precisión es prácticamente idéntica en tareas generales, ofreciendo una experiencia sumamente robusta frente a diferentes acentos y ruidos de fondo.
+
+\section{RAG}
+
+El sistema implementa una arquitectura RAG con recuperación híbrida, es decir, el sistema trata de recuperar de su información local, y en caso de no encontrar la información busca en la web. El proceso se divide en tres fases principales: indexación, evaluación de relevancia y generación. Toda este componente ha sido implementada usando \textbf{LangChain} \cite{langchain-2025}.
+
+\subsection{Indexación y persistencia de datos}
+Para la gestión del conocimiento local, el sistema utiliza un flujo de procesamiento de documentos PDF basado en \textbf{LangChain} \cite{langchain-2025}. Los documentos son cargados mediante \textbf{PyPDFLoader} y fragmentados utilizando \textbf{RecursiveCharacterTextSplitter} con un tamaño de \texttt{chunk} de $1000$ caracteres y un \texttt{overlap} de $200$ caracteres para preservar el contexto semántico entre fragmentos. 
+
+Estos fragmentos se transforman en vectores numéricos utilizando modelos de \textbf{embeddings} de \textbf{Ollama} \cite{ollama-2023}, en concreto se ha utilizado \textbf{nomic-embed-text} \cite{nomicembed}, y se almacenan en una base de datos vectorial basada en \textbf{ChromaDB}. El sistema incluye una lógica de persistencia que verifica la existencia previa de la base de datos para evitar re-indexaciones innecesarias, es decir, se comprueba si anteriormente se ha generado esta base de datos, y de esta forma se optimiza el tiempo de ejecución.
+
+\subsection{Recuperación y evaluación de relevancia}
+Una vez recibida la transcripción del audio, el sistema realiza una búsqueda de similitud en el \textit{vector store} recuperando los $k=10$ fragmentos más cercanos. Antes de proceder a la generación, se introduce un paso para evaluar la relevancia y comprobar mediante un LLM (\textbf{llama3.1}) \cite{meta-llama-3-1-2024} si el contexto recuperado localmente es suficiente o no para generar la respuesta. Los prompts serían:
+\begin{lstlisting}[language=Python]
+prompt_evaluador = ChatPromptTemplate.from_messages([
+    ("system", "Eres un evaluador de relevancia. Responde estrictamente con una palabra: 'SI' o 'NO'."),
+    ("human", f"Pregunta: {pregunta} \n\n Contexto recuperado: {documentos} \n\n ¿Contiene este contexto la informacion necesaria para responder?")
+])
+\end{lstlisting}
+
+A partir de la respuesta obtenida tendríamos que:
+\begin{itemize}
+    \item Si el contexto recuperado es suficiente para responder a la consulta, se procede con la información local.
+    \item En caso de que el contexto local sea insuficiente o irrelevante, el sistema activa un mecanismo de \textit{fallback} en que utiliza la herramienta \textbf{TavilySearchResults} \cite{tavily-2024} para obtener la información de la web. Para este caso, se ha establecido a 5 el número máximo de resultados que se devolverán por búsqueda y se ha indicado que se realice una búsqueda avanzada. 
 \end{itemize}
-\end{minipage}
 
-Luego, se ha hecho que el modelo aprenda a dar como salida el texto y estos tokens. Con el modelo entrenado, se han procesado sus predicciones para ejecutar las llamadas a funciones y obtener la fecha final. 
+\subsection{Generación de respuesta final}
+La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (\textbf{Qwen3} en cloud o \textbf{llama3.1} en local). En nuestras pruebas, se evaluaron dos enfoques principales para esta generación: un modelo local y un modelo basado en la nube. Independientemente de si se utiliza la versión cloud o la local, tras analizar las 60 respuestas generadas por los usuarios, no nos decantamos por considerar que ninguna de las dos opciones ofrezca una respuesta de RAG claramente mejor a nivel cualitativo. Ambas opciones proporcionan resultados coherentes. Sin embargo, observando las métricas obtenidas con detalle, se aprecian ciertas diferencias de rendimiento y precisión que podrían inclinar la balanza dependiendo de la disponibilidad de hardware.
 
-Los resultados son muy buenos, equivocándose unicamente en 10 de 1000 ejemplos. or lo tanto, el error medio es de un 1.0 \%.
+Para distinguir entre la información obtenida de la web y la extraída de los documentos, se dispone de la siguiente lógica de \textit{fallback}:
+\begin{lstlisting}[language=Python]
+if es_relevante:
+    print(" - [OK] Informacion encontrada en documentos locales.")
+    contexto_final = contexto_local
+    fuente_info = "tus documentos internos"
+else:
+    print(" - [!] Informacion local insuficiente o irrelevante. Consultando internet...")
+    web_results = search_tool.invoke({"query": transcription})
+    contexto_final = "\n".join([res["content"] for res in web_results])
+    fuente_info = "fuentes externas en internet"
+\end{lstlisting}
 
-\begin{table}[H]
-\centering
-\begin{tabular}{lr}
-	\toprule
-	\textbf{idioma} & \textbf{Error \%} \\
-	\midrule
-	Bilingüe Funciones & 1.00 \\
-	\bottomrule
-\end{tabular}
-\caption{Resultados en transcripción automática de fechas monolingüe: WER Inglés y Español.}
-\label{tab:wer_ej1}
-\end{table}
+El \textit{prompt} del sistema está configurado para actuar como un asistente de investigación, obligando al modelo a entregar una respuesta en texto plano, sin formatos Markdown, asegurando una salida natural, fluida y concisa que se adapta a seguir un formato de mensaje de voz. El prompt utilizado es:
+\begin{lstlisting}[language=Python]
+system_prompt = (
+    "Eres un asistente de investigacion. Responde de forma natural, fluida y concisa, no des detalles innecesarios y ves directamente al grano. "
+    f"La informacion proviene de {fuente_info}. "
+    "IMPORTANTE: No uses negritas, ni asteriscos, ni listas, ni ningun formato markdown. "
+    "Escribe todo en un parrafo o parrafos de texto plano, como si fuera una carta o un mensaje de voz."
+    "\n\nContexto: {context}"
+)
 
+prompt_final = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    ("human", "{input}"),
+])
+\end{lstlisting}
 
-\section{Ejercicio Extra: Top-K y Top-P}
-Como ejercicios extra, se ha decidido hacer los dos primeros: implemntar Top-K y Top-P en la generación, y hacer un modelo multilingüe con instrucciones.
+\clearpage 
+\section{Text to Speech (Local vs Cloud)}
+Una vez que el sistema RAG ha generado la respuesta de texto, lo único que queda es comunicar el feedback al usuario mediante voz. Para esta etapa final, el sistema implementa dos modalidades para poder hacer uso de la más indicada según el contexto: una opción totalmente local y una opción utilizando servicios en la nube.
 
-Se ha partido del ejercicios dos para hacer estas modificaciones, ya que era el que más margen de mejora presentaba. Se ha vuelto a entrenar el modelo durante 10 epochs para tener una línea base con decodificación greedy, y se ha conseguido un WER de 3.87 \%, ligeramente mejor al original.
+\subsection{Kokoro (Local)}
+Para la versión local, se ha integrado Kokoro \cite{hexgrad-kokoro-2025}, un modelo de síntesis de voz (TTS) de código abierto que destaca por su gran eficiencia. Está basado en una arquitectura híbrida que usa conceptos de \textit{StyleTTS2} \cite{li-styletts2-2023} e \textit{ISTFTNet} \cite{kaneko-istftnet-2022}. Al tener únicamente 82 millones de parámetros, usa una red neuronal muy ligera para predecir el estilo y la duración de los fonemas.
 
-La implementación estas estrategias de decodificación, pasa por cambiar el código del generate. 
+Gracias a este diseño compacto, consigue generar audio en menos del tiempo que cuesta reproducirlo, con una latencia mínima. A nivel de recursos, apenas ocupa memoria en la GPU, dejando espacio libre para el resto del sistema (como el LLM o el reconocimiento de voz). 
 
-\begin{enumerate}
-  \item \textbf{Top-K:} Se parte de los logits, se ordenan de mayor a menor y se mantienen los K primeros. El resto de logits se descartan y se hace una softmax con los K logits restantes para obtener las probabilidades. Finalmente, se hace el muestreo a partir de estas probabilidades.
-  \item \textbf{Top-P:} Se parte de los logits, se aplica softmax para obtener las probabilidades, se ordenan de mayor a menor y se calcula la suma acumulada. Se mantienen los tokens hasta que la suma acumulada supere el umbral P. El resto de logits se ponen descartan y se hace una softmax y muestreo como en el caso anterior.
-\end{enumerate}
+La principal desventaja es el resultado final: aunque la voz es clara y se entiende perfectamente, carece un poco de "personalidad" y puede sonar ligeramente plana en comparación con las voces de última generación.
 
-Para ver el impacto de estas técnicas, se ha probado a decodificar el test con diferentes valores de K y P. La línea base con decodificación greedy obtuvo un WER de 3.87\%. Los resultados con Top-K y Top-P son los siguientes:
+\subsection{Modelo Cloud (El "otro")}
+Como alternativa al modelo local, la versión "cloud" hace uso de servicios externos (API) que emplean redes neuronales mucho más grandes, diseñadas específicamente para audio de altísima calidad y naturalidad. 
 
-\begin{table}[H]
-\centering
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\begin{tabular}{lr}
-	\toprule
-	\textbf{K} & \textbf{WER \%} \\
-	\midrule
-	1 & 3.87 \\
-	2 & 4.53 \\
-	3 & 4.23 \\
-	4 & 4.44 \\
-	5 & 4.60 \\
-	6 & 4.72 \\
-	7 & 4.39 \\
-	8 & 4.79 \\
-	9 & 4.23 \\
-	10 & 4.72 \\
-	\bottomrule
-\end{tabular}
-\caption{Resultados con Top-K.}
-\label{tab:topk}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\begin{tabular}{lr}
-	\toprule
-	\textbf{P (\%)} & \textbf{WER \%} \\
-	\midrule
-	10.0 & 3.87 \\
-	20.0 & 3.87 \\
-	30.0 & 4.51 \\
-	40.0 & 10.51 \\
-	50.0 & 34.32 \\
-	60.0 & 540.25 \\
-	70.0 & 589.45 \\
-	80.0 & 576.49 \\
-	90.0 & 538.15 \\
-	100.0 & 4.86 \\
-	\bottomrule
-\end{tabular}
-\caption{Resultados con Top-P.}
-\label{tab:topp}
-\end{minipage}
-\end{table}
+A diferencia de lo que se podría intuir en un principio, el uso de la alternativa en la nube aporta resultados que superan con fluidez al modelo local. La voz generada por los servicios web es mucho más natural, incluyendo pausas lógicas e inflexiones. Lo más llamativo de esta comparativa es que esta inmensa mejora en la naturalidad se consigue a cambio de una latencia apenas superior a la de Kokoro.
 
+\subsection{Calidad vs Velocidad}
+Tras analizar ambas opciones, el compromiso entre calidad y latencia se hace evidente pero menos marcado de lo esperado. Mientras que Kokoro (local) proporciona inmediatez y privacidad total de los datos (sin depender de conexión a internet), el modelo en la nube ofrece un audio sobresaliente que compensa la ligerísima espera adicional. La elección depende finalmente empíricamente de cuán vital sea la retención de los datos y el ecosistema en sí contra la comodidad de una voz casi totalmente humana.
 
+\section{Interfaz gráfica}
+Para el desarrollo de la interfaz gráfica, se ha hecho uso en mayor medida de herramientas LLMs. Dado el poco tiempo que se ha tenido para hacer el desarrollo, y el desconocimiento de librerías para su desarrollo, no se ha tenido otra opción.
 
-Cómo vemos. la estrategia ganadora sigue siendo la greedy. El Top-k=1 y top-p con poca masa de probabilidad se comportan de la misma forma que el greedy porque al menos ha de elegir un token, pero luego al aumentar la massa se vuelve un método nefasto. El top-k muestra más consistencia a lo largo de las ejecuciones, aun que no mejora al método greedy.
+La librería que se ha usado ha sido \texttt{Streamlit} \cite{streamlit-2025}, y se ha proporcionado a Copilot referencias e instrucciones concretas de como implementar la interfaz. A partir de esto, se generó una plantilla base por la que empezar. Ya que las IAs no son perfectas, algunos errores se han tenido que arreglar, se han ajustado las rutas y se han añadido opciones para elegir qué modelo \texttt{TTS}.
 
-La razón por la que esto puede ser así, es el simple hecho de que no hay tantos tokens como para que estrategias de este estilo valgan la pena. El modelo no tiende a confundir tokens (darles logits similares), por lo que usando la estrategia por defecto se consiguen los mejores resultados.
+Con todo esto, se puede lanzar una interfaz gráfica muy sencilla que permite grabar o subir preguntas en tiempo real. A los pocos segundos, se obtiene una respuesta por voz.
 
+\section{Curiosidades y Fallos Observados}
+Durante las fases de pruebas exhaustivas del sistema completo, salieron a flote comportamientos inusuales y limitaciones prácticas que conviene destacar, ya que evidencian los sesgos y el margen de error presente tanto en los sistemas generativos como en los modelos de transcripción.
 
-\section{Resumen resultados}
-A continuación se muestran los resultados WER obtenidos en los diferentes ejercicios realizados:
+Por un lado, respecto al reconocimiento de voz (STT) mediante Whisper, detectamos limitaciones fonéticas al intentar transcribir siglas o nombres propios muy específicos del dominio. Por ejemplo, al pronunciar de forma natural las siglas de nuestro máster ("MIARFID"), el modelo de OpenAI fallaba repetidamente forzando la transcripción a la palabra inventada "MirFit". Ocurría un fenómeno idéntico al nombrar el repositorio protagonista de nuestros repositorios de trabajo integrados, "PyCatan", el cual terminaba siendo transcrito invariablemente como "PaiKatan". Estos fallos repercuten en cadena; si el asistente recibe la palabra equivocada, la búsqueda RAG rara vez localizará el documento correcto asociado.
+
+Por otro lado, se documentó una inconsistencia notable en la arquitectura RAG a la hora de determinar correctamente la fuente principal a consultar. En ocasiones, la respuesta íntegra a una pregunta se encontraba perfectamente indexada en los ficheros locales. Sin embargo, el LLM evaluador (llama3.1) decidía puntuar el contexto local como insuficiente o irrelevante, forzando un \textit{fallback} hacia la búsqueda web en internet. Un caso documentado de esto ocurrió al formular preguntas sobre "la raza del perro" presente en nuestros PDFs de prueba: el resultado dependía enormemente de la decisión algorítmica de qué fuente terminaba usando, demostrando que la evaluación semántica previa sigue siendo un eslabón con cierta fricción e inestabilidad (véase la Figura \ref{fig:web_search_inconsis}).
 
 \begin{figure}[H]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    bar width=0.6cm,
-    width=\textwidth,
-    height=7.5cm,
-    ylabel={WER (\%)},
-    symbolic x coords={Español, Inglés, Bilingüe, Funciones, Greedy, Top-K=3, Top-P=30},
-    xtick=data,
-    x tick label style={font=\small},
-    ymin=0,
-    ymax=5,
-    ymajorgrids=true,
-    grid style=dashed,
-    enlarge x limits=0.15,
-    nodes near coords,
-    nodes near coords align={vertical},
-    every node near coord/.append style={font=\small},
-]
-
-% WER scores
-\addplot[fill=blue!60] coordinates {
-    (Español, 1.36)
-    (Inglés, 1.21)
-    (Bilingüe, 4.20)
-    (Funciones, 1.0)
-    (Greedy, 3.87)
-    (Top-K=3, 4.23)
-    (Top-P=30, 4.51)
-};
-
-\end{axis}
-\end{tikzpicture}
-\caption{Comparación de WER obtenido en cada ejercicio. Español e Inglés corresponden al Ejercicio 1, Bilingüe al Ejercicio 2, Funciones al Ejercicio 3, y Greedy Extra al ejercicio extra con decodificación greedy.}
-\label{fig:resultados_finales}
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/web-seach-inconsistency.png}
+    \caption{Ejemplo de inconsistencia en el sistema RAG, donde el evaluador prefiere buscar en la web ignorando los datos locales explícitamente disponibles.}
+    \label{fig:web_search_inconsis}
 \end{figure}
+
+\chapter{Resultados y Análisis}
+Para poder evaluar y cuantificar la competitividad del entorno local frente a las soluciones en la nube, se llevaron a cabo una serie de pruebas sistemáticas. Se diseñó un experimento control consistente en la grabación previa de 30 audios con preguntas y peticiones variadas. Estas 30 muestras se proporcionaron de idéntica forma tanto al canal local como al \textit{cloud}, obteniendo un total de 60 ejecuciones evaluadas.
+
+\section{Metodología de Evaluación}
+La recogida de métricas se segmentó en distintas áreas para analizar de manera holística el desempeño del sistema. Se recopilaron los siguientes parámetros:
+
+\begin{itemize}
+    \item \textbf{Tiempos de ejecución:} Se midieron de forma automatizada insertando marcas en el código. El tiempo total por petición se describe matemáticamente como la suma de sus fases:
+    $$ T_{total} = T_{STT} + T_{RAG} + T_{TTS} $$
+    
+    \item \textbf{Precisión del STT (WER):} Para verificar qué tan correcta era la transcripción del audio comparado con el texto real, se empleó la métrica \textit{Word Error Rate}. Se estandarizaron internamente ambas cadenas usando el módulo \texttt{werpy.normalize} que, en esencia, consiste en secuenciar las frases pasando todo a minúsculas, eliminando los signos de puntuación, borrando los espacios sobrantes y homogeneizando los caracteres especiales.
+    
+    \item \textbf{RAG Matching Source:} Esta métrica dictamina, de forma binaria ($0$ ó $1$), si el sistema recurrió correctamente al almacén de la información. Si el dato necesario residía localmente y el sistema usaba esa base, sumaba 1. Si consultaba internet ignorándolo, puntuaba 0. Y de forma paralela en la dirección opuesta, sumando un acumulado total o su versión porcentual.
+    
+    \item \textbf{RAG Matching Response:} Valora si el sistema brindó o no la contesta correcta final independientemente de la fuente de donde provino (o si lo dedujo de su conocimiento interno). Es aquí donde se detectó el impacto del fallo de asignación de fuente comentado previamente: si el sistema infiere que \textit{no} dispone del contexto y sale a la web, aunque no sea lo ideal, acostumbra a hallar la respuesta y acierta. Por desgracia en la contraparte, cuando el sistema evalúa erróneamente que \textit{sí} tiene la respuesta en el documento y se aísla, el LLM padece de la escasez del contexto y termina forzando una alucinación (es decir, proporcionando un dato incorrecto o inventado).
+    
+    \item \textbf{TTS Score:} Debido a la subjetividad del paradigma conversacional, se empleó una escala manual del $0$ al $5$ valorando parámetros humanos tales como la fluidez, pausas lógicas, gusto general y naturalidad a la hora de escuchar la respuesta devuelta por los altavoces.
+\end{itemize}
+
+\section{Extracción de Resultados}
+La tabla \ref{tab:results_metrics} y el gráfico ilustrativo en la figura \ref{fig:results_plots} encapsulan el resumen de datos cosechados a través de las 60 ejecuciones analizadas en ambas modalidades de inferencia.
+
+\begin{table}[htpb]
+\centering
+\caption{Métricas obtenidas en la evaluación de los 30 audios.}
+\label{tab:results_metrics}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Métrica}                  & \textbf{Local} & \textbf{Cloud} \\ \midrule
+Transcribe Time (s)               & 3.95           & 0.41           \\
+RAG Time (s)                      & 6.04           & 31.98          \\
+TTS Time (s)                      & 1.03           & 0.86           \\
+\textbf{Total Time (s)}           & \textbf{11.02} & \textbf{33.25} \\ \midrule
+Transcription WER (\%)            & 5.22\%         & 6.32\%         \\ \midrule
+RAG Matching Source (\%)          & 80.00\%        & 90.00\%        \\
+RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\
+RAG Matching Source (Raw)         & 24 / 30        & 27 / 30        \\
+RAG Matching Response (Raw)       & 19 / 30        & 25 / 30        \\ \midrule
+\textbf{TTS Score (0-5)}          & \textbf{2.50}  & \textbf{4.50}  \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{images/results.png}
+    \caption{Visualización gráfica del contraste de resultados (Tiempos, \% de acierto y Conteo Crudo).}
+    \label{fig:results_plots}
+\end{figure}
+
+Como se aprecia fuertemente en las franjas de tiempos, el entorno en la nube resulta estar enormemente penalizado en cuanto a latencia de respuesta (principalmente por el excesivo tiempo consumido en la orquestación RAG). Pese a ello, las soluciones alojadas en internet despuntan de forma inaudita en la variable que cuantifica la fluidez del habla y en el porcentaje de entendimiento de búsqueda (Match Response). Por otro lado, la diferencia en la correcta ingesta de las palabras (STT WER) fluctúa por la mínima con un excelente resultado en ambos entornos, resultando una discrepancia poco representativa para la experiencia de un usuario final.
+
+\chapter{Conclusiones y trabajos futuros}
+
+Tras finalizar el desarrollo e implementación del asistente, se pueden extraer varias conclusiones importantes sobre el estado actual de estas tecnologías y su integración.
+
+En primer lugar, ha quedado demostrado que hoy en día es totalmente viable crear un flujo completo de interacción por voz en una máquina personal. Hace poco tiempo, combinar transcripción, búsqueda de información, razonamiento y síntesis de voz en segundos era algo reservado a grandes empresas. Ahora, con el hardware adecuado, se puede procesar una pregunta y obtener una respuesta hablada en un tiempo muy razonable.
+
+Respecto a los componentes del sistema, se han observado diferencias notables en su complejidad:
+\begin{itemize}
+    \item \textbf{El reconocimiento de voz (STT)} es, a día de hoy, un problema prácticamente resuelto para tareas generales. Herramientas como Whisper funcionan casi como un 'plug and play': se conectan y funcionan. Para idiomas comunes como el español o el inglés, no hace falta reentrenar ni realizar fine-tunning; el modelo entiende lo que decimos con una precisión excelente desde el primer momento.
+    
+    \item \textbf{La fiabilidad de la información} sigue siendo el punto más delicado. Sabemos que un LLM por sí solo no es suficiente, ya que tiende a 'alucinar' o inventar datos. Por tanto, es crucial que el sistema tenga acceso a fuentes externas (mediante RAG para documentos locales o búsqueda web) para poder confiar en sus respuestas. Tal y como revelan las métricas de evaluación insertadas, aunque el modelo \textit{cloud} obtiene un ratio de resolución superior (83\% de aciertos limpios), confiar ciegamente en fuentes locales mal evaluadas degenera drásticamente en alucinaciones (estancando el \textit{benchmark} local en un 63\%). Sin esta conexión dinámica entre recursos asimilados, el asistente puede ser elocuente pero peligroso.
+    
+    \item \textbf{Compromiso entre Velocidad y Naturalidad en Arquitecturas:} Enlazando con el análisis métrico del capítulo anterior, constatamos que delegar las operaciones vitales a un monolito local permite un altísimo desempeño en latencia pura ($11.02$s), logrando un entorno casi fluido. Sin embargo, trasladarlo al orquestado de microproveedores \textit{cloud} multiplica la latencia notablemente ($33.25$s). Aun con esta penalización temporal general, es este último enfoque en la nube el que ostenta la victoria imbatible en cuanto a naturalidad final de la síntesis de voz, promediando un $4.5/5$ frente al modesto $2.5$ del modelo local. La síntesis de voz será vital y su elección dependerá subjetivamente del nivel de humanidad buscado por el consumidor final.
+    
+    Hay que mencionar que en aplicaciones reales, estos modelos deberían ser usados de otra forma. Por ejemplo, en lugar de esperar a hacer toda la generación de texto para luego hacer la voz, se podrían usar técnicas de \textit{streaming} para empezar a reproducir el audio mientras se sigue generando la respuesta del LLM. Esto reduciría la latencia percibida, difuminando de alguna forma los picos temporales identificados (especialmente en la variante cloud) y mejoraría exponencialmente la experiencia de usuario.
+\end{itemize}
+
+\section{Trabajos futuros}
+Aunque el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más acabado:
+
+\begin{itemize}
+    \item \textbf{Sistema 'siempre escuchando' (Wake Word):} Actualmente, la interacción requiere una acción manual (grabar/enviar). El siguiente paso es implementar un sistema de detección de palabras clave (como 'Oye Charo') que mantenga el micrófono abierto en bajo consumo y solo active el proceso pesado cuando se le llame.
+    
+    \item \textbf{Implementación en sistemas empotrados:} Mover el sistema de un PC de escritorio a un hardware dedicado y pequeño, como una Raspberry Pi o una NVIDIA Jetson. Esto permitiría tener el asistente en cualquier lugar de la casa sin depender de un ordenador encendido, acercándose más al concepto de 'altavoz inteligente'. Dependiendo del hardware, habría que delegar servicios a la nube.
+    
+    \item \textbf{Ampliación del agente:} Mejorar la capacidad del RAG para usar volúmenes de datos mucho mayores o añadirle más herramientas MCP, aumentaría las capacidades del sistema, y no lo limitaría a preguntas y respuestas. Ahora, esto podría requerir de modelos de lenguaje más grandes.
+    
+    \item \textbf{Streaming de respuesta:} Como se ha comentado, implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz mejoraría mucho la experiencia de usuario, reduciendo la latencia percibida.
+\end{itemize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
