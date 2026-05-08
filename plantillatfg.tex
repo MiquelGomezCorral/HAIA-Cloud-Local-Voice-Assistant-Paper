@@ -159,8 +159,6 @@ Todo se ha hecho con la supervisión de los autores y con control total sobre lo
 \subsubsection{Hardware utilizado}
 Los experimentos y la demo se han lanzado en una de nuestras máquina personales: GPU NVIDIA RTX 5070 (12 GB VRAM), procesador AMD Ryzen 9 9000X, 64 GB de RAM y Ubuntu 24.04 LTS.
 
-Todos los modelos han podido ser usados sin problemas. 
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -175,26 +173,11 @@ Si se piensa en que situaciones se suelen usar estos asistentes, lo primero que 
 
 Luego, este sistema tiene que poder interpretar la instrucción, lo que requiere de un sistema capaz de entender preguntas genéricas de cualquier ámbito. La tecnología que mejor responde a esta necesidad son los LLMs, no requieren de mayor presentación. Ahora, estos traen consigo algunos problemas por su misma naturaleza, haciendo que su uso no sea simple: esto modelos no tienen información de nuestro contexto concreto, no tienen información actualizada del mundo en tiempo real, y pueden llegar a alucinar datos solo por querer darnos una respuesta.
 
-Es así que la mejor forma de introducir un LLM en un sistema de este estilo, es mediante un RAG. Un RAG permite dotar al LLM de información específica de nuestro contexto, y se puede generalizar su uso con cualquier tipo de documentos. Con esto, se soluciona el primer problema, pero aún quedaría el segundo. Para permitir que el sistema pueda tener datos actualizados, hay que darle otra herramienta: el acceso a internet, será la segunda fuente de información fiable que tendrá el sistema. Con esto, estará provisto de todo lo necesario para responder a nuestras preguntas.
+Es así que la mejor forma de introducir un LLM en un sistema de este estilo, es mediante un RAG. Un RAG permite dotar al LLM de información específica de nuestro contexto, y se puede generalizar su uso con cualquier tipo de documentos. Con esto, se soluciona el primer problema, pero aún quedaría el segundo. Para permitir que el sistema pueda tener datos actualizados, hay que darle otra herramienta: el acceso a internet, que será la segunda fuente de información fiable que tendrá el sistema. Con esto, estará provisto de todo lo necesario para responder a nuestras preguntas.
 
 Ahora bien, que pueda responder a las preguntas, no significa que las pueda hacer llegar al usuario. En este punto falta el último paso, que el asistente de verdad se comunique de vuelta. De nuevo, la forma de hacerlo es mediante voz, por lo que el sistema deberá implementar un sistema de voz o Text to Speech.
 
 Con esto, el asistente estará dotado de la capacidad de responder a todo en tiempo real, con información fiable y actualizada, y todo ello mediante voz.
-
-\section{Proveedores Cloud y Complejidad del Ecosistema}
-A lo largo de este proyecto, si bien se partió con el horizonte de tener la totalidad del asistente trabajando en local, se introdujo como contraparte evaluar la viabilidad con servicios en la nube para percibir los cambios en fluidez y calidad. Sin embargo, recurrir a proveedores \textit{cloud} añadió un grado de complejidad técnica y burocrática notable al proceso de desarrollo.
- 
-Inicialmente, el planteamiento ideal era concentrar y delegar todas estas tareas (STT, LLMs, Text-to-Speech) a un único gigante de la nube, en este caso AWS. Esta unificación pretendía simplificar la gestión e integración, pero rápidamente emergieron problemas. Intentamos usar los servicios completos de AWS, pero nos encontramos con trabas limitantes a nivel de validación de cuentas, suscripciones bloqueadas y fallos donde el servicio simplemente no funcionaba tras el alta de la tarjeta. Aunque el pago y validación deberían ser un trámite rápido, las demoras burocráticas del proveedor forzaron la paralización de la solución centralizada.
-
-A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversificar el abanico y orquestar el sistema como un collage de distintos proveedores externos para poder solventar cada fase con su nivel de excelencia:
-\begin{itemize}
-    \item \textbf{GROQ:} Se empleó para el uso del LLM que gestiona y genera la lógica conversacional.
-    \item \textbf{Hugging Face:} Para la obtención de los modelos de representación vectorial (\textit{embeddings}), vitales para el RAG.
-    \item \textbf{Tavily:} Se recurrió a esta API para la interconexión específica con las búsquedas web.
-    \item \textbf{AWS (limitado):} Tras sortear algunas barreras iniciales, logramos configurarlo al menos como el proveedor final de \textit{Text to Speech} (TTS).
-\end{itemize}
- 
-Desde una perspectiva crítica, ensamblar estas piezas dispares es bastante engorroso frente al modelo monolítico local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), estructuras de conexión, cuotas de uso y esquemas de precios. Toda esta fragmentación eleva la complejidad de despliegue y ensucia la limpieza del código en comparación a cuando se controla el ecosistema enteramente bajo nuestra propia máquina, a pesar de que su latencia y respuesta sea altamente competente.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                             Desarrollo                                     %
@@ -202,37 +185,34 @@ Desde una perspectiva crítica, ensamblar estas piezas dispares es bastante engo
 \chapter{Desarrollo}
 En esta sección se redacta como se han implementado todas las partes del sistema planteado en el apartado anterior. Se comentan las tecnologías utilizadas y las dificultades observadas. 
 
-Primero que todo, se presenta el esquema que representa la arquitectura desarrollada:
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\linewidth]{images/structure.png}
-    \caption{Estructura del sistema del asistente de voz}
-    \label{fig:structure}
-\end{figure}
-
 Como se ha comentado, el sistema se divide en cuatro bloques principales: Speech to Text, LLM, acceso a RAG y a búsqueda en la web y Text to Speech. A continuación, se explicarán cada uno de ellos.
 
-En el esquema no se incluye la interfaz gráfica, ya que esta solo usa el sistema de forma abstracta. Se encarga de gestionar la interacción con el usuario, grabar el audio y reproducir la respuesta final.
+En los esquemas más abajo no se incluye la interfaz gráfica, ya que esta solo usa el sistema de forma abstracta. Se encarga de gestionar la interacción con el usuario, grabar el audio y reproducir la respuesta final.
 
-\clearpage
+\section{Implementación Local}
+Se comentan las tecnologías utilizadas para cada bloque del sistema, y se explica su funcionamiento e integración. Como la intergración con los modelos cloud ha sido muy similar, se omitirá en su apartado.
 
-\section{Speech to Text (Whisper)}
+\subsection{Speech to Text (Whisper)}
 Para la interpretación de los audios y solucionar la parte del sistema encargada del ASR o Speech to Text, se ha elegido el modelo Whisper \cite{radford-whisper-2022}.
 
 Whisper es un sistema de reconocimiento automático del habla (ASR) desarrollado por OpenAI. Es un modelo muy potente ya que es capaz no solo de transcribir, sino también de realizar traducción e identificar la lengua de forma nativa. Su arquitectura se basa en \textbf{Transformers} de tipo \textbf{encoder-decoder}, con un entrenamiento exhaustivo sobre miles de horas de audio multilingüe.
 
-El sistema se ha evaluado en dos modalidades: una versión \textbf{local} y una versión basada en la \textbf{nube} a través de web (API). En ambas modalidades, el modelo ha demostrado un funcionamiento excelente, resultando muy rápido y fácil de implementar. Se ha observado que, a niveles prácticos, la precisión es prácticamente idéntica en tareas generales, ofreciendo una experiencia sumamente robusta frente a diferentes acentos y ruidos de fondo.
+El modelo ha demostrado un funcionamiento excelente, resultando muy rápido y fácil de implementar. Se ha observado que, a niveles prácticos, la precisión es prácticamente idéntica en tareas generales, ofreciendo una experiencia sumamente robusta frente a diferentes acentos y ruidos de fondo.
 
-\section{RAG}
+Los únicos fallos detectados han sido cuando se mencionaban palabras muy específicas, como siglas o nombres propios, que el modelo no reconocía y transcribía de forma errónea. Por ejemplo, al pronunciar "MIARFID", el modelo lo transcribía como "MirFit". O al decir "PyCatan", lo transcribía como "PaiKatan". Estos errores repercuten en cadena, ya que si el asistente recibe la palabra equivocada, la búsqueda RAG rara vez localizará el documento correcto asociado.
+
+Aún así, el rendimiento general del modelo ha sido excelente, con una latencia mínima y una precisión más que suficiente para el propósito del asistente.
+
+\subsection{RAG}
 
 El sistema implementa una arquitectura RAG con recuperación híbrida, es decir, el sistema trata de recuperar de su información local, y en caso de no encontrar la información busca en la web. El proceso se divide en tres fases principales: indexación, evaluación de relevancia y generación. Toda este componente ha sido implementada usando \textbf{LangChain} \cite{langchain-2025}.
 
-\subsection{Indexación y persistencia de datos}
+\subsubsection{Indexación y persistencia de datos}
 Para la gestión del conocimiento local, el sistema utiliza un flujo de procesamiento de documentos PDF basado en \textbf{LangChain} \cite{langchain-2025}. Los documentos son cargados mediante \textbf{PyPDFLoader} y fragmentados utilizando \textbf{RecursiveCharacterTextSplitter} con un tamaño de \texttt{chunk} de $1000$ caracteres y un \texttt{overlap} de $200$ caracteres para preservar el contexto semántico entre fragmentos. 
 
-Estos fragmentos se transforman en vectores numéricos utilizando modelos de \textbf{embeddings} de \textbf{Ollama} \cite{ollama-2023}, en concreto se ha utilizado \textbf{nomic-embed-text} \cite{nomicembed}, y se almacenan en una base de datos vectorial basada en \textbf{ChromaDB}. El sistema incluye una lógica de persistencia que verifica la existencia previa de la base de datos para evitar re-indexaciones innecesarias, es decir, se comprueba si anteriormente se ha generado esta base de datos, y de esta forma se optimiza el tiempo de ejecución.
+Estos fragmentos se transforman en vectores numéricos utilizando modelos de \textbf{embeddings} de \textbf{Ollama} \cite{ollama-2023}, en concreto se ha utilizado \textbf{mistral-nemo} \cite{}, y se almacenan en una base de datos vectorial basada en \textbf{ChromaDB}. El sistema incluye una lógica de persistencia que verifica la existencia previa de la base de datos para evitar re-indexaciones innecesarias, es decir, se comprueba si anteriormente se ha generado esta base de datos, y de esta forma se optimiza el tiempo de ejecución.
 
-\subsection{Recuperación y evaluación de relevancia}
+\subsubsection{Recuperación y evaluación de relevancia}
 Una vez recibida la transcripción del audio, el sistema realiza una búsqueda de similitud en el \textit{vector store} recuperando los $k=10$ fragmentos más cercanos. Antes de proceder a la generación, se introduce un paso para evaluar la relevancia y comprobar mediante un LLM (\textbf{llama3.1}) \cite{meta-llama-3-1-2024} si el contexto recuperado localmente es suficiente o no para generar la respuesta. Los prompts serían:
 \begin{lstlisting}[language=Python]
 prompt_evaluador = ChatPromptTemplate.from_messages([
@@ -247,8 +227,8 @@ A partir de la respuesta obtenida tendríamos que:
     \item En caso de que el contexto local sea insuficiente o irrelevante, el sistema activa un mecanismo de \textit{fallback} en que utiliza la herramienta \textbf{TavilySearchResults} \cite{tavily-2024} para obtener la información de la web. Para este caso, se ha establecido a 5 el número máximo de resultados que se devolverán por búsqueda y se ha indicado que se realice una búsqueda avanzada. 
 \end{itemize}
 
-\subsection{Generación de respuesta final}
-La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (\textbf{Qwen3} en cloud o \textbf{llama3.1} en local). En nuestras pruebas, se evaluaron dos enfoques principales para esta generación: un modelo local y un modelo basado en la nube. Independientemente de si se utiliza la versión cloud o la local, tras analizar las 60 respuestas generadas por los usuarios, no nos decantamos por considerar que ninguna de las dos opciones ofrezca una respuesta de RAG claramente mejor a nivel cualitativo. Ambas opciones proporcionan resultados coherentes. Sin embargo, observando las métricas obtenidas con detalle, se aprecian ciertas diferencias de rendimiento y precisión que podrían inclinar la balanza dependiendo de la disponibilidad de hardware.
+\subsubsection{Generación de respuesta final}
+La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (el mismos \textbf{llama3.1} en local).
 
 Para distinguir entre la información obtenida de la web y la extraída de los documentos, se dispone de la siguiente lógica de \textit{fallback}:
 \begin{lstlisting}[language=Python]
@@ -279,7 +259,8 @@ prompt_final = ChatPromptTemplate.from_messages([
 ])
 \end{lstlisting}
 
-\clearpage 
+
+
 \section{Text to Speech (Local vs Cloud)}
 Una vez que el sistema RAG ha generado la respuesta de texto, lo único que queda es comunicar el feedback al usuario mediante voz. Para esta etapa final, el sistema implementa dos modalidades para poder hacer uso de la más indicada según el contexto: una opción totalmente local y una opción utilizando servicios en la nube.
 
@@ -297,6 +278,31 @@ A diferencia de lo que se podría intuir en un principio, el uso de la alternati
 
 \subsection{Calidad vs Velocidad}
 Tras analizar ambas opciones, el compromiso entre calidad y latencia se hace evidente pero menos marcado de lo esperado. Mientras que Kokoro (local) proporciona inmediatez y privacidad total de los datos (sin depender de conexión a internet), el modelo en la nube ofrece un audio sobresaliente que compensa la ligerísima espera adicional. La elección depende finalmente empíricamente de cuán vital sea la retención de los datos y el ecosistema en sí contra la comodidad de una voz casi totalmente humana.
+
+\section{Proveedores Cloud}
+A lo largo de este proyecto, si bien se partió con la idea de tener toda la totalidad del asistente trabajando en local, se introdujo como alternativa más 'usable' evaluar la viabilidad con servicios en la nube para comparar los cambios en fluidez y calidad. Al final, si se delega 'la computación' en 'otros', la implementación debería ser más sencilla: sin gestión de dependencias, sin preocupaciones por el mantenimiento, el hardware. Ahora, comenta que por otra parte, recurrir a proveedores \textit{cloud} añadió un grado de complejidad técnica y burocrática notable al proceso de desarrollo.
+ 
+Inicialmente, el planteamiento ideal era concentrar y delegar todas estas tareas (STT, LLMs, TTS) a un único servicio, en este caso AWS. Esta unificación pretendía simplificar la gestión e integración, pero rápidamente emergieron problemas. Intentamos usar los servicios completos de AWS, pero nos encontramos con trabas limitantes a nivel de validación de cuentas, suscripciones bloqueadas y fallos donde el servicio simplemente no funcionaba tras el alta de la tarjeta. Aunque el pago y validación deberían ser un trámite rápido, las demoras burocráticas del proveedor forzaron la paralización de la solución centralizada (no se realizó ningún pago real, la idea era el plan gratuido).
+
+A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversificar y orquestar el sistema como un collage de distintos proveedores externos para cada fase:
+\begin{itemize}
+    \item \textbf{GROQ:} Se empleó para el uso del LLM que gestiona y genera la lógica conversacional.
+    \item \textbf{Hugging Face:} Para la obtención de los modelos de \textit{embeddings} para el RAG.
+    \item \textbf{Tavily:} Se recurrió a esta API para las búsquedas web.
+    \item \textbf{AWS (limitado):} Tras sortear algunas barreras iniciales, logramos configurarlo al menos como el proveedor final de \textit{Text to Speech} (TTS).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{images/structure_cloud.png}
+    \caption{Estructura del sistema del asistente de voz usando proveedores \textit{cloud} para cada fase.}
+    \label{fig:structure}
+\end{figure}
+ 
+Desde una perspectiva crítica, ensamblar estas piezas dispares es bastante engorroso frente al modelo monolítico local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), estructuras de conexión, cuotas de uso y esquemas de precios. Toda esta fragmentación eleva la complejidad de despliegue y ensucia la limpieza del código en comparación a cuando se controla el ecosistema enteramente bajo nuestra propia máquina, a pesar de que su latencia y respuesta sea altamente competente.
+
+\chapter{Comparativa}
+A continuación planteamos una comparativa entre las dos modalidades de implementación del asistente. Se analizarán las diferencias en cuanto a rendimiento, calidad de respuesta, facilidad de desarrollo y complejidad de mantenimiento.
 
 \section{Interfaz gráfica}
 Para el desarrollo de la interfaz gráfica, se ha hecho uso en mayor medida de herramientas LLMs. Dado el poco tiempo que se ha tenido para hacer el desarrollo, y el desconocimiento de librerías para su desarrollo, no se ha tenido otra opción.
@@ -387,6 +393,8 @@ Respecto a los componentes del sistema, se han observado diferencias notables en
     
     Hay que mencionar que en aplicaciones reales, estos modelos deberían ser usados de otra forma. Por ejemplo, en lugar de esperar a hacer toda la generación de texto para luego hacer la voz, se podrían usar técnicas de \textit{streaming} para empezar a reproducir el audio mientras se sigue generando la respuesta del LLM. Esto reduciría la latencia percibida, difuminando de alguna forma los picos temporales identificados (especialmente en la variante cloud) y mejoraría exponencialmente la experiencia de usuario.
 \end{itemize}
+
+ Independientemente de si se utiliza la versión cloud o la local, tras analizar las 60 respuestas generadas por los usuarios, no nos decantamos por considerar que ninguna de las dos opciones ofrezca una respuesta de RAG claramente mejor a nivel cualitativo. Ambas opciones proporcionan resultados coherentes. Sin embargo, observando las métricas obtenidas con detalle, se aprecian ciertas diferencias de rendimiento y precisión que podrían inclinar la balanza dependiendo de la disponibilidad de hardware.
 
 \section{Trabajos futuros}
 Aunque el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más acabado:
