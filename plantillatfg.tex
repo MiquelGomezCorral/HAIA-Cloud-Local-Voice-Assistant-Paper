@@ -195,7 +195,7 @@ El apartado de 'búsquedas web' no se comparará ya que es el mismo para ambas m
 
 En los esquemas más abajo no se incluye la interfaz gráfica, ya que esta solo usa el sistema de forma abstracta. Se encarga de gestionar la interacción con el usuario, grabar el audio y reproducir la respuesta final.
 
-Por último, mencionar que la elección de modelos se ha hecho lo más parecida posible entre ambos entornos, para evitar sesgos. Se han exprimido al máximo las capacidades locales, y se han igualado los modelos en la nube a estos para que la comparación sea lo más justa posible. Por supuesto, esto bajo la premisa de la que parte el trabajo: viabilidad y facilidad de implementación además de sin coste económico (directo).
+Por último, mencionar que la elección de modelos se ha hecho lo más parecida posible entre ambos entornos, para evitar sesgos. Se han exprimido al máximo las capacidades locales, y se han igualado los modelos en la nube a estos para que la comparación sea lo más justa posible. Por supuesto, esto bajo la premisa de la que parte el trabajo: viabilidad y facilidad de implementación además de sin coste económico (directo, ya que la luz consumida por un ordenador, aun que poca, no es gratis).
 
 \section{Implementación Local}
 Se comentan las tecnologías utilizadas para cada bloque del sistema, y se explica su funcionamiento e integración en un entorno puramente local.
@@ -280,7 +280,7 @@ Gracias a este diseño compacto, consigue generar audio en menos del tiempo que 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{images/structure_local.png}
+    \includegraphics[width=0.5\linewidth]{images/structure_local.png}
     \caption{Estructura del sistema del asistente de voz usando modelos \textit{locales} para cada fase.}
     \label{fig:structure_local}
 \end{figure}
@@ -300,7 +300,7 @@ A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{images/structure_cloud.png}
+    \includegraphics[width=0.5\linewidth]{images/structure_cloud.png}
     \caption{Estructura del sistema del asistente de voz usando proveedores \textit{cloud} para cada fase.}
     \label{fig:structure_cloud}
 \end{figure}
@@ -309,7 +309,7 @@ A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversi
 \section{Interfaz gráfica}
 Para el desarrollo de la interfaz gráfica, se ha hecho uso de la librería \texttt{Streamlit} \cite{streamlit-2025}. 
 
-A partir de la documentación de esa y con ayuda de LLMs, se generó una plantilla base por la que empezar y poder integrar el sistema a nuestra pipeline. Se han ajustado las rutas y se han añadido opciones para elegir qué configuración (\texttt{Local o cloud}) utilizar.
+A partir de la documentación de esta y con ayuda de LLMs, se generó una plantilla base por la que empezar y poder integrar el sistema en la \textit{pipeline}. Se han ajustado las rutas y se han añadido opciones para elegir qué configuración (\texttt{Local o cloud}) utilizar.
 
 Con todo esto, se puede lanzar una interfaz gráfica muy sencilla que permite grabar o subir preguntas en tiempo real. A los pocos segundos, se obtiene una respuesta por voz.
 
@@ -413,6 +413,7 @@ RAG Matching Response (Raw)       & 19 / 30        & 25 / 30        \\ \midrule
         xticklabels={RAG Matching Source Raw, RAG Matching Response Raw},
         xtick={src_raw, resp_raw},
         ymax=35,
+        ymin=0,
         /pgf/bar width=2.5cm,
         enlarge x limits=0.5 
     ]
@@ -425,60 +426,58 @@ RAG Matching Response (Raw)       & 19 / 30        & 25 / 30        \\ \midrule
     \label{fig:results_plots}
 \end{figure}
 
-Como se aprecia fuertemente en las franjas de tiempos, el entorno en la nube resulta estar enormemente penalizado en cuanto a latencia de respuesta global (principalmente por el excesivo tiempo consumido en la orquestación RAG). Pese a que en tareas aisladas como la transcripción de audio (STT) la nube demuestra ser notablemente más rápida frente a la ejecución local, el tiempo final se resiente. 
-
-Sin embargo, la fluidez del habla y en el porcentaje de entendimiento de búsqueda (Match Response). Por otro lado, la diferencia en la correcta ingesta de las palabras (STT WER) fluctúa por la mínima con un excelente resultado en ambos entornos, resultando una discrepancia poco representativa para la experiencia de un usuario final.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                    COMPARATIVA 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Comparativa implementación}
-A lo largo de este y el siguiente capítulo, se plantea una comparativa entre las dos modalidades de implementación del asistente. Se analizarán las diferencias en cuanto a rendimiento, calidad de respuesta, facilidad de desarrollo y complejidad de mantenimiento.
+\section{Comparativa implementación}
+Se desglosan ahora las diferencias observadas en cada fase del sistema, analizando tanto el rendimiento como la facilidad de implementación y los resultados obtenidos.
 
-\section{Modelos STT}
+
+\subsection{Modelos STT}
 Tanto en la versión local como en la nube, la integración del sistema de reconocimiento de voz (STT) ha resultado en un proceso casi \textit{plug and play} en ambas opciones. Sin embargo, a nivel de rendimiento sí se observa una diferencia importante: el procesamiento externalizado a la nube es considerablemente más rápido. A pesar de esto, ambos sistemas transcriben a una velocidad sumamente alta que no supone un factor de cuello de botella crítico para la viabilidad del flujo en general.
 
-\section{RAG y Flexibilidad del Ecosistema}
+\subsection{RAG y Flexibilidad del Ecosistema}
 En cuanto al componente RAG, es importante puntualizar el grado de facilidad con el que se adaptó el sistema de una modalidad a otra. Con la misma implementación de código para una opción, se pudo introducir la otra directamente. 
 
 \textbf{LangChain} permite utilizar tanto los modelos locales (vía Ollama) como los LLMs y embeddings de proveedores externos, abstrayendo estas diferencias bajo la misma interfaz. De este modo, en el desarrollo final, con instanciar el modelo apuntando al servicio correspondiente, el RAG completo ya estaba funcionando.
 
-\section{Modelos TTS}
+\subsection{Modelos TTS}
 En la fase de síntesis de voz, se puede observar una gran diferencia entre Kokoro (modelo local) y el uso de AWS como modelo \textit{cloud}. 
 
 La principal desventaja del modelo local es el resultado final: aunque la voz es clara y se entiende perfectamente, carece un poco de 'personalidad' y puede sonar ligeramente plana en comparación con las voces de última generación.
 
-A diferencia de lo que se podría intuir en un principio, el uso de la alternativa en la nube aporta resultados que superan con fluidez al modelo local. La voz generada por los servicios web es mucho más natural, incluyendo pausas lógicas e inflexiones. Lo más llamativo de esta comparativa es que esta inmensa mejora en la naturalidad se consigue a cambio de una latencia apenas superior a la de Kokoro.
+A diferencia de lo que se podría intuir, el uso de la alternativa en la nube aporta resultados que superan con fluidez al modelo local. La voz generada por los servicios web es mucho más natural, incluyendo pausas lógicas e inflexiones. Lo más llamativo de esta comparativa es que esta inmensa mejora en la naturalidad se consigue a cambio de una latencia apenas superior a la de Kokoro.
 
 Tras analizar ambas opciones, el compromiso entre calidad y latencia se hace evidente pero menos marcado de lo esperado. Mientras que Kokoro (local) proporciona inmediatez, el modelo en la nube ofrece un audio sobresaliente que compensa la poca espera. La elección final depende de quet tan vital sea la comodidad de una voz casi totalmente humana y una latencia algo mayor.
 
-\section{Complejidad de Integración Múltiple}
+\subsection{Complejidad de Integración Múltiple}
 Si se delega 'la computación' en 'otros', la implementación teóricamente debería ser más sencilla: sin gestión de dependencias y sin preocupaciones por el mantenimiento del hardware. Sin embargo, recurrir a proveedores \textit{cloud} añade un grado de complejidad técnica y burocrática notable al proceso de desarrollo una vez que la cuenta única falló.
 
-Desde una perspectiva crítica, ensamblar estas piezas dispares es bastante engorroso frente al modelo monolítico local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), estructuras de conexión, cuotas de uso y esquemas de precios. Toda esta fragmentación eleva la complejidad de despliegue y la el desarrollo del código, a pesar de que su latencia y respuesta sea altamente competente.
+Desde una perspectiva crítica, ensamblar estas piezas dispares es engorroso frente al modelo local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), conexiones, cuotas de uso y precios... Toda esta fragmentación eleva la complejidad de despliegue y la el desarrollo del código, a pesar de que su latencia y respuesta sea altamente competente.
 
-\section{Curiosidades y Fallos Observados}
+\subsection{Curiosidades y Fallos Observados}
 Durante las fases de pruebas del sistema completo, salieron comportamientos inusuales y limitaciones prácticas que conviene destacar, ya que muestra los sesgos y el margen de error presente tanto en los sistemas generativos como en los modelos de transcripción.
 
 Por un lado, respecto al reconocimiento de voz (STT), se detectaron limitaciones fonéticas al intentar transcribir siglas o nombres propios muy específicos del dominio. Por ejemplo, al pronunciar de forma natural las siglas del máster en concreto ("MIARFID"), el modelo fallaba repetidamente forzando la transcripción a la palabra inventada "MirFit" o similar. Ocurría un fenómeno idéntico al nombrar el repositorio del "PyCatan", el cual terminaba siendo transcrito como "PaiKatan". Estos fallos repercuten en cadena; si el asistente recibe la palabra equivocada, la búsqueda RAG rara vez localizará el documento correcto asociado, y si el LLM no es capaz de inferir el término correcto, la respuesta final se ve comprometida.
 
 Por otro lado, se observó una inconsistencia notable en la arquitectura RAG a la hora de determinar correctamente la fuente a consultar. En ocasiones, la respuesta a una pregunta se encontraba perfectamente indexada en los ficheros locales. Sin embargo, el LLM evaluador (llama3.1) decidía que el contexto local era insuficiente o irrelevante, forzando un \textit{fallback} hacia la búsqueda web en internet: Sobre todo en preguntas sobre Messi. 
 
-Luego por ejemplo, si las 'fuentes de la verdad' no son fiables o varían, como algunas veces pasa en internet, no podemos asegurar respuestas consistentes o correctas. Si el sistema hace uso de la búsqueda web, y esta devuelve información errónea, el modelo generará una respuesta incorrecta, aunque el proceso de recuperación haya funcionado correctamente. Un ejemplo ha sido la pregunta '\textit{¿Cuál es la raza de perro más peluda según los expertos?}' a lo que cada ejecución (cloud o local), respondía aleatoriamente con '\textit{Chow Chow}', '\textit{Akita}' o '\textit{Pulli}'...
+Luego por ejemplo, si las 'fuentes de la verdad' no son fiables o varían, como algunas veces pasa en internet, no se pueden asegurar respuestas consistentes o correctas. Si el sistema hace uso de la búsqueda web, y esta devuelve información errónea, el modelo generará una respuesta incorrecta, aunque el proceso de recuperación haya funcionado correctamente. Un ejemplo ha sido la pregunta '\textit{¿Cuál es la raza de perro más peluda según los expertos?}' a lo que cada ejecución (cloud o local), respondía aleatoriamente con '\textit{Chow Chow}', '\textit{Akita}' o '\textit{Pulli}'...
 (véase la Figura \ref{fig:web_search_inconsis}).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{images/web-seach-inconsistency.png}
+    \includegraphics[width=0.35\linewidth]{images/web-seach-inconsistency.png}
     \caption{Ejemplo de inconsistencia en el sistema RAG, donde el evaluador prefiere buscar en la web ignorando los datos locales explícitamente disponibles.}
     \label{fig:web_search_inconsis}
 \end{figure}
 
-\section{Requisitos Computacionales, privacidad y elección de modelos}
+\subsection{Requisitos Computacionales, privacidad y elección de modelos}
 Donde realmente recae el punto clave a la hora de decidir entre abordar una implementación puramente local o externalizar su computación a la nube, es en los requisitos físicos de la máquina y la privacidad. 
 
-Alojar LLM o transformers de gran tamaño como algunas versiones de Whisper, implica requerimientos considerables de VRAM para la GPU y memoria RAM. Además de estar de depender totalmente de agentes externos, pasando por el riesgo de externalizar tus datos a terceros, lo que puede ser un gran inconveniente para muchos usuarios.
+Alojar LLM o transformers de gran tamaño como algunas versiones de Whisper, implica requerimientos considerables de VRAM para la GPU y memoria RAM. Además de depender totalmente de agentes externos, pasando por el riesgo de externalizar los datos a terceros, lo que puede ser un gran inconveniente para muchos usuarios.
 
 Por ello, si se dispone del hardware necesario para sostener las ejecuciones de manera fluida y concurrente, la versión local es una muy buena opción. De lo contrario, si las capacidades de la máquina están limitadas, se puede suplir este déficit usando las APIs de los proveedores externos \textit{cloud}, garantizando una ejecución sin cuellos de botella y con un catálogo mucho mayor de modelos y servicios disponibles.
 
@@ -486,10 +485,25 @@ Se recuerda que la comparativa se ha hecho usando los modelos más parecidos pos
 
 Además de esto, se han realizado todas las ejecuciones cloud con suscripciones gratuitas de los proveedores, SIN haber llegado al tope de uso. Esto implica dos cosas: 
 \begin{enumerate}
-    \item Sin hacer inversión en hardware, conseguimos un sistema más que competente al local.
-    \item Si el usuario quisiera, podría abrir la puerta de las suscripciones de pago, lo que le permitiría usar modelos aún más potentes y con mejores resultados, aumentando la brecha de calidad frente a la versión local. Sobre todo con respecto a los LLMs.
+    \item Sin hacer inversión en hardware, se consigue un sistema más que competente frente al entorno local.
+    \item Si el usuario quisiera, podría abrir la puerta a las suscripciones de pago, lo que le permitiría usar modelos aún más potentes y con mejores resultados, aumentando la brecha de calidad frente a la versión local. Sobre todo con respecto a los LLMs.
 \end{enumerate}
-De nuevo, a cambio de una dependencia total de terceros y la externalización de datos,
+De nuevo, a cambio de una dependencia total de terceros y la externalización de datos.
+
+\section{Tiempos de respuesta}
+Como se aprecia en los tiempos de la figura \ref{fig:results_plots}, el entorno en la nube tiene una latencia de respuesta global muy alta(principalmente por el excesivo tiempo consumido en la orquestación RAG). Pese a que en tareas aisladas como la transcripción de audio (STT) la nube demuestra ser notablemente más rápida frente a la ejecución local, el tiempo final se resiente. 
+
+Ya que el feedback del sistema es uno de los factores más críticos para la experiencia del usuario, tardar tanto es un gran inconveniente, de media, el sistema cloud es hasta 3 veces más lento que en el entorno local. 
+
+Las diferentes partes terminan dando un resultado similar y al final se consiguen respuestas correctas en ambos casos, pero la espera es un factor que puede llegar a ser molesto para el usuario (más incluso que la calidad de voz por ejemplo).
+
+
+\section{Estructura sugerida}
+Para finalizar, se propone una estructura de sistema híbrida que combine lo mejor de ambos mundos (entre lo que se ha probado): \textbf{usar proveedores cloud para el reconocimiento de voz (STT) y la síntesis de voz (TTS) y llevar gestión del RAG de forma local. }
+
+De esta forma, se consigue la latencia más baja, se mantiene la máxima privacidad con respecto a nuestros datos, y se obtiene una calidad de voz sobresaliente. Además, el sistema RAG local puede ser tan potente como se quiera nuestra máquina sea, y no se ve limitado por las restricciones de los proveedores externos.
+
+El único inconveniente de esta arquitectura sería el limitación en la elección de LLMs. Pero con la creciente variedad de modelos, cada vez más pequeños y eficientes, esto no debería ser un gran problema para tareas 'tan simples' como responder preguntas concretas basadas en un contexto específico.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                   CONCLUSIONES Y TRABAJOS FUTUROS
@@ -497,22 +511,22 @@ De nuevo, a cambio de una dependencia total de terceros y la externalización de
 
 \chapter{Conclusiones y trabajos futuros}
 
-Tras finalizar el desarrollo e implementación del asistente, se pueden extraer varias conclusiones importantes sobre el estado actual de estas tecnologías y su integración.
+Tras finalizar el desarrollo e implementación del asistente, se extraen diversas conclusiones fundamentales sobre la viabilidad, el rendimiento y la integración de estas tecnologías.
 
-En primer lugar, ha quedado demostrado que hoy en día es totalmente viable crear un flujo completo de interacción por voz en una máquina personal. Hace poco tiempo, combinar transcripción, búsqueda de información, razonamiento y síntesis de voz en segundos era algo reservado a grandes empresas. Ahora, con el hardware adecuado, se puede procesar una pregunta y obtener una respuesta hablada en un tiempo muy razonable.
+En primer lugar, queda demostrado que actualmente es totalmente viable desplegar un flujo completo de interacción por voz, tanto en un entorno puramente local como apoyándose en la nube. Con la orquestación adecuada, se puede resolver el ciclo de transcripción, búsqueda de información, razonamiento y síntesis de voz en tiempos competentes y con resultados sólidos.
 
-Respecto a los componentes del sistema, se han observado diferencias notables en su complejidad:
+A partir de la experimentación y comparativa entre ambas modalidades, se destacan los siguientes puntos clave en alusión a las tecnologías evaluadas:
 \begin{itemize}
-    \item \textbf{El reconocimiento de voz (STT)} es, a día de hoy, un problema prácticamente resuelto para tareas generales. Herramientas como Whisper funcionan casi como un 'plug and play': se conectan y funcionan. Para idiomas comunes como el español o el inglés, no hace falta reentrenar ni realizar fine-tunning; el modelo entiende lo que se dice con una precisión excelente desde el primer momento.
+    \item \textbf{Reconocimiento de voz (STT):} Se consolida como una tecnología altamente accesible y precisa. Modelos robustos como Whisper transcriben de forma inmediata, siendo prácticamente \textit{plug and play}. Aunque la externalización a la nube demostró ser matemáticamente más veloz (0.41s frente a 3.95s en local), ambas opciones operan a tasas óptimas que no lastran el desempeño general de la aplicación.
     
-    \item \textbf{La fiabilidad de la información} sigue siendo el punto más delicado. Se sabe que un LLM por sí solo no es suficiente, ya que tiende a 'alucinar' o inventar datos. Por tanto, es crucial que el sistema tenga acceso a fuentes externas (mediante RAG para documentos locales o búsqueda web) para poder confiar en sus respuestas. Tal y como revelan las métricas de evaluación insertadas, aunque el modelo \textit{cloud} obtiene un ratio de resolución superior (83\% de aciertos limpios), confiar ciegamente en fuentes locales mal evaluadas degenera drásticamente en alucinaciones (estancando el \textit{benchmark} local en un 63\%). Sin esta conexión dinámica entre recursos asimilados, el asistente puede ser elocuente pero peligroso.
+    \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet.
     
-    \item \textbf{Compromiso entre Velocidad y Naturalidad en Arquitecturas:} Enlazando con el análisis métrico del capítulo anterior, se constata que delegar las operaciones vitales a un monolito local permite un altísimo desempeño en latencia pura ($11.02$s), logrando un entorno casi fluido. Sin embargo, trasladarlo al orquestado de microproveedores \textit{cloud} multiplica la latencia notablemente ($33.25$s). Aun con esta penalización temporal general, es este último enfoque en la nube el que ostenta la victoria imbatible en cuanto a naturalidad final de la síntesis de voz, promediando un $4.5/5$ frente al modesto $2.5$ del modelo local. La síntesis de voz será vital y su elección dependerá subjetivamente del nivel de humanidad buscado por el consumidor final.
+    \item \textbf{Síntesis de voz (TTS):} Se constata una dicotomía estricta entre opciones. Los sistemas de la nube proporcionan locuacidad y calidez notablemente superior (obteniendo de media una puntuación de naturalidad e inflexión de 90 sobre 100 frente al modesto 50 de la opción local), manteniendo pese a ello una latencia de síntesis equiparable al competente modelo local Kokoro.
     
-    Hay que mencionar que en aplicaciones reales, estos modelos deberían ser usados de otra forma. Por ejemplo, en lugar de esperar a hacer toda la generación de texto para luego hacer la voz, se podrían usar técnicas de \textit{streaming} para empezar a reproducir el audio mientras se sigue generando la respuesta del LLM. Esto reduciría la latencia percibida, difuminando de alguna forma los picos temporales identificados (especialmente en la variante cloud) y mejoraría exponencialmente la experiencia de usuario.
+    \item \textbf{Dicotomía de Despliegue, Privacidad y Eficiencia:} La ejecución local resalta por su consistencia e inmediatez global (promediando apenas $11.02$s por ciclo frente a los $33.25$s del marco externalizado), dotando al ecosistema de resiliencia y privacidad al operar en el equipo. Por contra, apostar por proveedores externos en la nube libera de altísimos requisitos de hardware (lo que democratiza su uso), pero añade fragmentación en forma de API keys, integraciones de terceros y altas latencias durante la orquestación.
 \end{itemize}
 
- Independientemente de si se utiliza la versión cloud o la local, tras analizar las 60 respuestas generadas por los usuarios, no se considera que ninguna de las dos opciones ofrezca una respuesta de RAG claramente mejor a nivel cualitativo. Ambas opciones proporcionan resultados coherentes. Sin embargo, observando las métricas obtenidas con detalle, se aprecian ciertas diferencias de rendimiento y precisión que podrían inclinar la balanza dependiendo de la disponibilidad de hardware.
+Como deducción de cierre, se concluye que la predilección de modalidad depende inherentemente del hardware disponible y la privacidad exigida. En virtud de englobar las virtudes reportadas, se ratifica la propuesta de converger en una \textbf{arquitectura híbrida}: externalizando el reconocimiento (STT) y síntesis vocal (TTS) a la nube para ganar naturalidad y agilidad algorítmica, al tiempo que se retiene el núcleo generativo RAG localmente para asegurar una privacidad estricta estructural y aprovechar la fluidez de respuesta en inferencias cortas.
 
 \section{Trabajos futuros}
 Aunque el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más acabado:
