@@ -501,7 +501,7 @@ Las diferentes partes terminan dando un resultado similar y al final se consigue
 \section{Estructura sugerida}
 Para finalizar, se propone una estructura de sistema híbrida que combine lo mejor de ambos mundos (entre lo que se ha probado): \textbf{usar proveedores cloud para el reconocimiento de voz (STT) y la síntesis de voz (TTS) y llevar gestión del RAG de forma local. }
 
-De esta forma, se consigue la latencia más baja, se mantiene la máxima privacidad con respecto a nuestros datos, y se obtiene una calidad de voz sobresaliente. Además, el sistema RAG local puede ser tan potente como se quiera nuestra máquina sea, y no se ve limitado por las restricciones de los proveedores externos.
+De esta forma, se consigue la latencia más baja (según las pruebas $7.31s$, como referencia, Alexa responde en 1 a 4 segundos), se mantiene la máxima privacidad con respecto a nuestros datos, y se obtiene una calidad de voz sobresaliente. Además, el sistema RAG local puede ser tan potente como se quiera nuestra máquina sea, y no se ve limitado por las restricciones de los proveedores externos.
 
 El único inconveniente de esta arquitectura sería el limitación en la elección de LLMs. Pero con la creciente variedad de modelos, cada vez más pequeños y eficientes, esto no debería ser un gran problema para tareas 'tan simples' como responder preguntas concretas basadas en un contexto específico.
 
@@ -513,32 +513,37 @@ El único inconveniente de esta arquitectura sería el limitación en la elecci�
 
 Tras finalizar el desarrollo e implementación del asistente, se extraen diversas conclusiones fundamentales sobre la viabilidad, el rendimiento y la integración de estas tecnologías.
 
-En primer lugar, queda demostrado que actualmente es totalmente viable desplegar un flujo completo de interacción por voz, tanto en un entorno puramente local como apoyándose en la nube. Con la orquestación adecuada, se puede resolver el ciclo de transcripción, búsqueda de información, razonamiento y síntesis de voz en tiempos competentes y con resultados sólidos.
+En primer lugar, queda demostrado que actualmente es totalmente viable desplegar un flujo completo de interacción por voz, tanto en un entorno puramente local como apoyándose en la nube. Con la orquestación adecuada, se puede resolver la transcripción, búsqueda de información, razonamiento y síntesis de voz en tiempos competentes y con resultados sólidos.
 
 A partir de la experimentación y comparativa entre ambas modalidades, se destacan los siguientes puntos clave en alusión a las tecnologías evaluadas:
 \begin{itemize}
-    \item \textbf{Reconocimiento de voz (STT):} Se consolida como una tecnología altamente accesible y precisa. Modelos robustos como Whisper transcriben de forma inmediata, siendo prácticamente \textit{plug and play}. Aunque la externalización a la nube demostró ser matemáticamente más veloz (0.41s frente a 3.95s en local), ambas opciones operan a tasas óptimas que no lastran el desempeño general de la aplicación.
-    
     \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet.
     
-    \item \textbf{Síntesis de voz (TTS):} Se constata una dicotomía estricta entre opciones. Los sistemas de la nube proporcionan locuacidad y calidez notablemente superior (obteniendo de media una puntuación de naturalidad e inflexión de 90 sobre 100 frente al modesto 50 de la opción local), manteniendo pese a ello una latencia de síntesis equiparable al competente modelo local Kokoro.
+    \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet. Por otro lado, la latencia se dispara y perdemos la privacidad de nuestros datos.
     
-    \item \textbf{Dicotomía de Despliegue, Privacidad y Eficiencia:} La ejecución local resalta por su consistencia e inmediatez global (promediando apenas $11.02$s por ciclo frente a los $33.25$s del marco externalizado), dotando al ecosistema de resiliencia y privacidad al operar en el equipo. Por contra, apostar por proveedores externos en la nube libera de altísimos requisitos de hardware (lo que democratiza su uso), pero añade fragmentación en forma de API keys, integraciones de terceros y altas latencias durante la orquestación.
+    \item \textbf{Síntesis de voz (TTS):} Los sistemas de la nube proporcionan una fluidez notablemente superior, manteniendo pese a ello una latencia equiparable al competente modelo local Kokoro. Aún habiendo más opciones locales, a primera vista la respuesta de AWS es la ganadora indiscutible.
+    
+    \item \textbf{Despliegue, Privacidad y Eficiencia:} A nivel local, se destaca la simplicidad de integración y la privacidad total, aunque a costa de un catalogo más limitado y con fuerte restricción de hardware. En la nube, se obtiene una flexibilidad y potencia de modelos inalcanzable localmente, pero con una complejidad por la burocracia de los proveedores y la necesidad de confiar datos a terceros. No se puede saber con certeza la evolución de sus planes y políticas, por o que siempre se trabaja con incertidumbre. Los planes gratuitos nos perfectos para uso personal y privado. De escalar el sistema, habría que considerar el pago de ciertos servicios.
 \end{itemize}
 
-Como deducción de cierre, se concluye que la predilección de modalidad depende inherentemente del hardware disponible y la privacidad exigida. En virtud de englobar las virtudes reportadas, se ratifica la propuesta de converger en una \textbf{arquitectura híbrida}: externalizando el reconocimiento (STT) y síntesis vocal (TTS) a la nube para ganar naturalidad y agilidad algorítmica, al tiempo que se retiene el núcleo generativo RAG localmente para asegurar una privacidad estricta estructural y aprovechar la fluidez de respuesta en inferencias cortas.
+En definitiva, la elección entre una implementación local o en la nube depende de las prioridades del usuario: si no se dispone de un hardware potente, la única opción es la nube; si por otro lado contamos don máquinas potentes, y se valora más la privacidad, el entorno local es la mejor opción; mientras que si se busca un compromiso entre calidad y velocidad, una opción híbrida sería la más adecuada.
+
+Aun con todo, se ve que ambas opciones son perfectamente válidas y competitivas, y con la orquestación adecuada, se pueden conseguir resultados muy similares en términos de precisión y calidad de respuesta. La nube ofrece una mayor flexibilidad y potencia, pero a costa de una latencia más alta y la externalización de datos, mientras que el entorno local proporciona una experiencia más inmediata y privada, aunque con limitaciones en cuanto a modelos disponibles y requisitos de hardware.
 
 \section{Trabajos futuros}
 Aunque el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más acabado:
 
 \begin{itemize}
+    \item \textbf{Optimización de tiempos:} Actualmente, el sistema más rápido que se montar supera los 7s como tiempo de respuesta total, lo que es un poco elevado para un asistente de voz. Se podrían explorar opciones para reducir esta latencia, como usar modelos más ligeros, optimizar la orquestación o implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz.
+
+    \item \textbf{Streaming de respuesta:} Como se ha comentado, implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz mejoraría mucho la experiencia de usuario, reduciendo la latencia percibida.
+
     \item \textbf{Sistema 'siempre escuchando' (Wake Word):} Actualmente, la interacción requiere una acción manual (grabar/enviar). El siguiente paso es implementar un sistema de detección de palabras clave (como 'Oye Charo') que mantenga el micrófono abierto en bajo consumo y solo active el proceso pesado cuando se le llame.
     
     \item \textbf{Implementación en sistemas empotrados:} Mover el sistema de un PC de escritorio a un hardware dedicado y pequeño, como una Raspberry Pi o una NVIDIA Jetson. Esto permitiría tener el asistente en cualquier lugar de la casa sin depender de un ordenador encendido, acercándose más al concepto de 'altavoz inteligente'. Dependiendo del hardware, habría que delegar servicios a la nube.
     
     \item \textbf{Ampliación del agente:} Mejorar la capacidad del RAG para usar volúmenes de datos mucho mayores o añadirle más herramientas MCP, aumentaría las capacidades del sistema, y no lo limitaría a preguntas y respuestas. Ahora, esto podría requerir de modelos de lenguaje más grandes.
     
-    \item \textbf{Streaming de respuesta:} Como se ha comentado, implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz mejoraría mucho la experiencia de usuario, reduciendo la latencia percibida.
 \end{itemize}
 
 
