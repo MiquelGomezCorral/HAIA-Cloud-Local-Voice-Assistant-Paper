@@ -96,13 +96,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \keywords{
-    Traducción de textos; español; esperanto; Transformers; LLMs
+    Assistent de veu; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
 } % Paraules clau 
 {
-   Traducción de textos; 
+   Asistente de voz; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
 } % Palabras clave
 {
-    Text clasification.
+    Voice assistant; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
 } % Key words
 
 
@@ -147,7 +147,7 @@ En el contexto de la vida cotidiana, los asistentes de voz se han convertido en 
 
 Al principio, estos asistentes eran muy limitados y no tenían apenas capacidad de respuesta. Eran todo instrucciones predefinidas que seguían casi como \texttt{if else}. Las voces y las frases que estas podían decir estaban pre-grabadas, por lo que no se podían salir de ese pequeño conjunto de respuestas. 
 
-Hoy en día, esto ha cambiado bastante. De primeras, la llegada de los modelos de lenguaje, capaces de generalizar las respuestas que puede dar un sistema, soluciona las limitaciones de '\textit{a qué puede contestar el sistema}', ahora es prácticamente a todo. Luego, si se le suma que los modelos de voz modernos son capaces de pronunciar cualquier frase, palabra o fonema en casi todos los idiomas, tenemos la receta perfecta para crear un sistema que responda a cualquier petición en segundos.
+Hoy en día, esto ha cambiado bastante. De primeras, la llegada de los modelos de lenguaje, capaces de generalizar las respuestas que puede dar un sistema, soluciona las limitaciones de '\textit{a qué puede contestar el sistema}', ahora es prácticamente a todo. Luego, si se le suma que los modelos de voz modernos son capaces de pronunciar cualquier frase, palabra o fonema en casi todos los idiomas, se tiene la receta perfecta para crear un sistema que responda a cualquier petición en segundos.
 
 En este trabajo, se pretende abordar la creación de un sistema de preguntas y respuestas mediante un asistente de voz virtual. En su conjunto, el proyecto consiste en una investigación para analizar la viabilidad de desarrollar un asistente de voz propio, evaluando y confrontando el rendimiento, la facilidad de desarrollo y la complejidad de utilizar alternativas totalmente locales frente a soluciones basadas en modelos de diferentes proveedores \textit{cloud} (en la nube) para cada una de las fases (transcripción, RAG con información local y web, y síntesis de voz).
 
@@ -173,11 +173,11 @@ Para poder implementar un asistente capaz de responder preguntas de forma confia
 
 Primero que todo, el sistema debe ser cómodo de usar e interactuar con él. Para esto, la opción más intuitiva es que funcione mediante voz. 
 
-Si se piensa en que situaciones se suelen usar estos asistentes, lo primero que viene a la mente son situaciones en las que no es posible hacer uso de tecnología, como al conducir, cocinar o incluso en la ducha. Son situaciones en las que se tienen las manos ocupadas y por lo tanto, no se puede hacer uso ni de dispositivos móviles, ni de mucho menos teclado y ratón. Por lo que hacer las preguntas mediante voz, es la solución perfecta.
+Si se piensa en qué situaciones se suelen usar estos asistentes, lo primero que viene a la mente son situaciones en las que no es posible hacer uso de tecnología, como al conducir, cocinar o incluso en la ducha. Son situaciones en las que se tienen las manos ocupadas y por lo tanto, no se puede hacer uso ni de dispositivos móviles, ni mucho menos de teclado y ratón. Por lo que hacer las preguntas mediante voz, es la solución perfecta.
 
-Luego, este sistema tiene que poder interpretar la instrucción, lo que requiere de un sistema capaz de entender preguntas genéricas de cualquier ámbito. La tecnología que mejor responde a esta necesidad son los LLMs, no requieren de mayor presentación. Ahora, estos traen consigo algunos problemas por su misma naturaleza, haciendo que su uso no sea simple: esto modelos no tienen información de nuestro contexto concreto, no tienen información actualizada del mundo en tiempo real, y pueden llegar a alucinar datos solo por querer darnos una respuesta.
+Luego, este sistema tiene que poder interpretar la instrucción, lo que requiere de un sistema capaz de entender preguntas genéricas de cualquier ámbito. La tecnología que mejor responde a esta necesidad son los LLMs, no requieren de mayor presentación. Ahora, estos traen consigo algunos problemas por su misma naturaleza, haciendo que su uso no sea simple: estos modelos no tienen información de un contexto concreto, no tienen información actualizada del mundo en tiempo real, y pueden llegar a alucinar datos solo por querer darnos una respuesta.
 
-Es así que la mejor forma de introducir un LLM en un sistema de este estilo, es mediante un RAG. Un RAG permite dotar al LLM de información específica de nuestro contexto, y se puede generalizar su uso con cualquier tipo de documentos. Con esto, se soluciona el primer problema, pero aún quedaría el segundo. Para permitir que el sistema pueda tener datos actualizados, hay que darle otra herramienta: el acceso a internet, que será la segunda fuente de información fiable que tendrá el sistema. Con esto, estará provisto de todo lo necesario para responder a nuestras preguntas.
+Es así que la mejor forma de introducir un LLM en un sistema de este estilo, es mediante un RAG. Un RAG permite dotar al LLM de información específica de dicho contexto, y se puede generalizar su uso con cualquier tipo de documentos. Con esto, se soluciona el primer problema, pero aún quedaría el segundo. Para permitir que el sistema pueda tener datos actualizados, hay que darle otra herramienta: el acceso a internet, que será la segunda fuente de información fiable que tendrá el sistema. Con esto, estará provisto de todo lo necesario para responder a las preguntas.
 
 Ahora bien, que pueda responder a las preguntas, no significa que las pueda hacer llegar al usuario. En este punto falta el último paso, que el asistente de verdad se comunique de vuelta. De nuevo, la forma de hacerlo es mediante voz, por lo que el sistema deberá implementar un sistema de voz o Text to Speech.
 
@@ -187,7 +187,7 @@ Con esto, el asistente estará dotado de la capacidad de responder a todo en tie
 %                             Desarrollo                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Desarrollo}
-En esta sección se redacta como se han implementado todas las partes del sistema planteado en el apartado anterior. Se comentan las tecnologías utilizadas y las dificultades observadas. 
+En esta sección se redacta cómo se han implementado todas las partes del sistema planteado en el apartado anterior. Se comentan las tecnologías utilizadas y las dificultades observadas. 
 
 El sistema se divide en cuatro bloques principales: Speech to Text, LLM (RAG) con acceso a datos locales y a búsqueda en la web y Text to Speech. A continuación, se explicarán cada uno de ellos.
 
@@ -213,7 +213,7 @@ Aún así, el rendimiento general del modelo ha sido excelente, con una latencia
 
 \subsection{RAG (Ollama)}
 
-El sistema implementa una arquitectura RAG con recuperación híbrida, es decir, el sistema trata de recuperar de su información local, y en caso de no encontrar la información busca en la web. El proceso se divide en tres fases principales: indexación, evaluación de relevancia y generación. Toda este componente ha sido implementada usando \textbf{LangChain} \cite{langchain-2025}.
+El sistema implementa una arquitectura RAG con recuperación híbrida, es decir, el sistema trata de recuperar de su información local, y en caso de no encontrar la información busca en la web. El proceso se divide en tres fases principales: indexación, evaluación de relevancia y generación. Todo este componente ha sido implementado usando \textbf{LangChain} \cite{langchain-2025}.
 
 \subsubsection{Indexación y persistencia de datos}
 Para la gestión del conocimiento local, el sistema utiliza un flujo de procesamiento de documentos PDF basado en \textbf{LangChain} \cite{langchain-2025}. Los documentos son cargados mediante \textbf{PyPDFLoader} y fragmentados utilizando \textbf{RecursiveCharacterTextSplitter} con un tamaño de \texttt{chunk} de $1000$ caracteres y un \texttt{overlap} de $200$ caracteres para preservar el contexto semántico entre fragmentos. 
@@ -229,14 +229,14 @@ prompt_evaluador = ChatPromptTemplate.from_messages([
 ])
 \end{lstlisting}
 
-A partir de la respuesta obtenida tendríamos que:
+A partir de la respuesta obtenida se tendría que:
 \begin{itemize}
     \item Si el contexto recuperado es suficiente para responder a la consulta, se procede con la información local.
     \item En caso de que el contexto local sea insuficiente o irrelevante, el sistema activa un mecanismo de \textit{fallback} en que utiliza la herramienta \textbf{TavilySearchResults} \cite{tavily-2024} para obtener la información de la web. Para este caso, se ha establecido a 5 el número máximo de resultados que se devolverán por búsqueda y se ha indicado que se realice una búsqueda avanzada. 
 \end{itemize}
 
 \subsubsection{Generación de respuesta final}
-La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (el mismos \textbf{llama3.1} en local).
+La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (el mismo \textbf{llama3.1} en local).
 
 Para distinguir entre la información obtenida de la web y la extraída de los documentos, se dispone de la siguiente lógica de \textit{fallback}:
 \begin{lstlisting}[language=Python]
@@ -254,7 +254,7 @@ else:
 El \textit{prompt} del sistema está configurado para actuar como un asistente de investigación, obligando al modelo a entregar una respuesta en texto plano, sin formatos Markdown, asegurando una salida natural, fluida y concisa que se adapta a seguir un formato de mensaje de voz. El prompt utilizado es:
 \begin{lstlisting}[language=Python]
 system_prompt = (
-    "Eres un asistente de investigacion. Responde de forma natural, fluida y concisa, no des detalles innecesarios y ves directamente al grano. "
+    "Eres un asistente de investigacion. Responde de forma natural, fluida y concisa, no des detalles innecesarios y ve directamente al grano. "
     f"La informacion proviene de {fuente_info}. "
     "IMPORTANTE: No uses negritas, ni asteriscos, ni listas, ni ningun formato markdown. "
     "Escribe todo en un parrafo o parrafos de texto plano, como si fuera una carta o un mensaje de voz."
@@ -455,7 +455,7 @@ Tras analizar ambas opciones, la mejor opción se hace clara: a no ser que se te
 \subsection{Complejidad de Integración Múltiple}
 Si se delega 'la computación' en 'otros', la implementación teóricamente debería ser más sencilla: sin gestión de dependencias y sin preocupaciones por el mantenimiento del hardware. Sin embargo, recurrir a proveedores \textit{cloud} añade un grado de complejidad técnica y burocrática notable al proceso de desarrollo una vez que la cuenta única falló.
 
-Desde una perspectiva crítica, ensamblar estas piezas dispares es engorroso frente al modelo local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), conexiones, cuotas de uso y precios... Toda esta fragmentación eleva la complejidad de despliegue y la el desarrollo del código, a pesar de que su latencia y respuesta sea altamente competente.
+Desde una perspectiva crítica, ensamblar estas piezas dispares es engorroso frente al modelo local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), conexiones, cuotas de uso y precios... Toda esta fragmentación eleva la complejidad de despliegue y el desarrollo del código, a pesar de que su latencia y respuesta sea altamente competente.
 
 \subsection{Curiosidades y Fallos Observados}
 Durante las fases de pruebas del sistema completo, salieron comportamientos inusuales y limitaciones prácticas que conviene destacar, ya que muestra los sesgos y el margen de error presente tanto en los sistemas generativos como en los modelos de transcripción.
@@ -501,7 +501,7 @@ Las diferentes partes terminan dando un resultado similar y al final se consigue
 \section{Estructura sugerida}
 Para finalizar, se propone una estructura de sistema híbrida que combine lo mejor de ambos mundos (entre lo que se ha probado): \textbf{usar proveedores cloud para el reconocimiento de voz (STT) y la síntesis de voz (TTS) y llevar gestión del RAG de forma local. }
 
-De esta forma, se consigue la latencia más baja (según las pruebas $7.31s$, como referencia, Alexa responde en 1 a 4 segundos), se mantiene la máxima privacidad con respecto a nuestros datos, y se obtiene una calidad de voz sobresaliente. Además, el sistema RAG local puede ser tan potente como se quiera nuestra máquina sea, y no se ve limitado por las restricciones de los proveedores externos.
+De esta forma, se consigue la latencia más baja (según las pruebas $7.31s$, como referencia, Alexa responde en 1 a 4 segundos), se mantiene la máxima privacidad con respecto a los datos procesados, y se obtiene una calidad de voz sobresaliente. Además, el sistema RAG local puede ser tan potente como la máquina lo permita, y no se ve limitado por las restricciones de los proveedores externos.
 
 El único inconveniente de esta arquitectura sería la limitación en la elección de LLMs. Pero con la creciente variedad de modelos, cada vez más pequeños y eficientes, esto no debería ser un gran problema para tareas 'tan simples' como responder preguntas concretas basadas en un contexto específico.
 
@@ -517,16 +517,16 @@ En primer lugar, queda demostrado que actualmente es totalmente viable desplegar
 
 A partir de la experimentación y comparativa entre ambas modalidades, se destacan los siguientes puntos clave en alusión a las tecnologías evaluadas:
 \begin{itemize}
-    \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet. Por otro lado, la latencia se dispara y perdemos la privacidad de nuestros datos.
+    \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet. Por otro lado, la latencia se dispara y se pierde la privacidad de los datos.
     
     \item \textbf{Síntesis de voz (TTS):} Los sistemas de la nube proporcionan una fluidez notablemente superior, manteniendo pese a ello una latencia equiparable al competente modelo local Kokoro. Aún habiendo más opciones locales, a primera vista la respuesta de AWS es la ganadora indiscutible.
     
-    \item \textbf{Despliegue, Privacidad y Eficiencia:} A nivel local, se destaca la simplicidad de integración y la privacidad total, aunque a costa de un catalogo más limitado y con fuerte restricción de hardware. En la nube, se obtiene una flexibilidad y potencia de modelos inalcanzable localmente, pero con una complejidad por la burocracia de los proveedores y la necesidad de confiar datos a terceros. No se puede saber con certeza la evolución de sus planes y políticas, por lo que siempre se trabaja con incertidumbre. Los planes gratuitos son perfectos para uso personal y privado. De escalar el sistema, habría que considerar el pago de ciertos servicios.
+    \item \textbf{Despliegue, Privacidad y Eficiencia:} A nivel local, se destaca la simplicidad de integración y la privacidad total, aunque a costa de un catálogo más limitado y con fuerte restricción de hardware. En la nube, se obtiene una flexibilidad y potencia de modelos inalcanzable localmente, pero con una complejidad por la burocracia de los proveedores y la necesidad de confiar datos a terceros. No se puede saber con certeza la evolución de sus planes y políticas, por lo que siempre se trabaja con incertidumbre. Los planes gratuitos son perfectos para uso personal y privado. De escalar el sistema, habría que considerar el pago de ciertos servicios.
 \end{itemize}
 
-En definitiva, la elección entre una implementación local o en la nube depende de las prioridades del usuario: si no se dispone de un hardware potente, la única opción es la nube; si por otro lado contamos don máquinas potentes, y se valora más la privacidad, el entorno local es la mejor opción; mientras que si se busca un compromiso entre calidad y velocidad, una opción híbrida sería la más adecuada.
+En definitiva, la elección entre una implementación local o en la nube depende de las prioridades del usuario: si no se dispone de un hardware potente, la única opción es la nube; si por otro lado el entorno cuenta con máquinas potentes, y se valora más la privacidad, el entorno local es la mejor opción; mientras que si se busca un compromiso entre calidad y velocidad, una opción híbrida sería la más adecuada.
 
-Aun con todo, se ve que ambas opciones son perfectamente válidas y competitivas, y con la orquestación adecuada, se pueden conseguir resultados muy similares en términos de precisión y calidad de respuesta. La nube ofrece una mayor flexibilidad y potencia, pero a costa de una latencia más alta y la externalización de datos, mientras que el entorno local proporciona una experiencia más inmediata y privada, aunque con limitaciones en cuanto a modelos disponibles y requisitos de hardware.
+Aun con todo, se ve que ambas opciones son perfectamente válidas y competitivas, y con la orquestación adecuada, se pueden conseguir resultados muy similares en términos de precisión y calidad de respuesta. La nube ofrece una mayor flexibilidad y potencia, pero a costa de una latencia más alta y la externalización de datos, mientras que el entorno local proporciona una experiencia más inmediata y privada, aunque con limitaciones en cuanto a los modelos disponibles y los requisitos de hardware.
 
 \section{Trabajos futuros}
 A pesar de que el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más completo:
