@@ -163,7 +163,18 @@ Todo se ha hecho con la supervisión de los autores y con control total sobre lo
 \subsubsection{Hardware utilizado}
 Los experimentos y la demo se han lanzado en una máquina personal: GPU NVIDIA RTX 5070 (12 GB VRAM), procesador AMD Ryzen 9 9000X, 64 GB de RAM y Ubuntu 24.04 LTS.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            Estado del Arte                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Estado del Arte}
 
+Actualmente, el panorama de los asistentes de voz se basa mucho en modelos de lenguaje de gran tamaño (LLMs) y sistemas de síntesis de voz (TTS) que han evolucionado enormemente en los últimos años.
+
+Por un lado, en el entorno \textit{cloud}, el estado del arte (SOTA) lo lideran los modelos multimodales nativos, como GPT-4o de OpenAI \cite{gpt4o-2024} o Gemini Live \cite{geminilive-2024}. La revolución de estos sistemas es que prescinden de la clásica cascada (pasar de voz a texto, procesar y generar voz); en su lugar, procesan y generan el audio directamente. Esto los hace rapidísimos y muy naturales. Sin embargo, tienen pegas importantes: son "cajas negras", obligan a enviar datos privados a servidores de terceros, tienen costes por uso, y montarles un RAG propio profundo y flexible no es tan sencillo.
+
+Por otro lado, en el entorno \textit{local} y \textit{open-source}, el estado del arte sigue apostando por la arquitectura modular (STT $\rightarrow$ LLM $\rightarrow$ TTS), que es exactamente la que se emplea en este proyecto. Herramientas como Whisper \cite{radford-whisper-2022} dominan la transcripción; modelos como Llama 3.1 \cite{meta-llama-3-1-2024} o Mistral-Nemo \cite{mistral-nemo-2024} permiten un razonamiento excelente en hardware doméstico; y sintetizadores ligeros como Kokoro \cite{hexgrad-kokoro-2025} o Qwen3-TTS \cite{qwen-team-2025} logran voces fluidas en tiempo real consumiendo mínimos recursos.
+
+Esto confirma que, aunque las grandes tecnológicas tiren por sistemas monolíticos en la nube, la arquitectura segmentada que usamos en este trabajo sigue siendo el estándar actual y necesario para crear asistentes privados, modulares y con RAG a medida \cite{langchain-2025}. Por ello, comparar el rendimiento de esta estructura en local frente a sus equivalentes en la nube es un ejercicio de total relevancia a día de hoy.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                        Planteamiento del proyecto                         %
