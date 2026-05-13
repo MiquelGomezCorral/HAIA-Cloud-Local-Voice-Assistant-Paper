@@ -96,13 +96,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \keywords{
-    Assistent de veu; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
+    Assistent de veu; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; Groq; Hugging Face;
 } % Paraules clau 
 {
-   Asistente de voz; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
+   Asistente de voz; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; Groq; Hugging Face;
 } % Palabras clave
 {
-    Voice assistant; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; GROQ; Hugging Face;
+    Voice assistant; LLMs; RAG; Whisper; Kokoro; Ollama; Tavily; AWS; Groq; Hugging Face;
 } % Key words
 
 
@@ -163,35 +163,18 @@ Los experimentos y la demo se han lanzado en una máquina personal: GPU NVIDIA R
 
 Además, todas las pruebas cloud se realizaron en planes gratuitos sin alcanzar el límite de uso.
 
-% \chapter{Introducción}
-
-% Los asistentes de voz han evolucionado desde sistemas de respuestas predefinidas hasta soluciones capaces de responder a prácticamente cualquier petición, gracias a la combinación de LLMs y modelos de síntesis modernos. Este trabajo analiza la viabilidad de construir un asistente de voz propio comparando, para cada fase del sistema (transcripción, RAG con fuentes locales y web, y síntesis de voz), alternativas puramente locales frente a soluciones basadas en proveedores \textit{cloud}.
-
-% \subsubsection{Uso de herramientas LLM}
-% Se utilizó Copilot para integrar la interfaz gráfica, Claude Code para resolver conflictos de versiones y Gemini para revisar la redacción, siempre bajo supervisión de los autores.
-
-% \subsubsection{Hardware utilizado}
-% GPU NVIDIA RTX 5070 (12 GB VRAM), CPU AMD Ryzen 9 9000X, 64 GB RAM, Ubuntu 24.04 LTS.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                            Estado del Arte                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Estado del Arte}
 
-Actualmente, el panorama de los asistentes de voz se basa mucho en modelos de lenguaje de gran tamaño (LLMs) y sistemas de síntesis de voz (TTS) que han evolucionado enormemente en los últimos años.
+Actualmente, el panorama de los asistentes de voz se basa en gran medida en modelos de lenguaje de gran tamaño (LLMs) y sistemas de síntesis de voz (TTS) que han evolucionado enormemente en los últimos años.
 
-Por un lado, en el entorno \textit{cloud}, el estado del arte (SOTA) lo lideran los modelos multimodales nativos, como GPT-4o de OpenAI \cite{gpt4o-2024} o Gemini Live \cite{geminilive-2024}. La revolución de estos sistemas es que prescinden de la clásica cascada (pasar de voz a texto, procesar y generar voz); en su lugar, procesan y generan el audio directamente. Esto los hace rapidísimos y muy naturales. Sin embargo, tienen pegas importantes: son 'cajas negras', obligan a enviar datos privados a servidores de terceros, tienen costes por uso, y montarles un RAG propio profundo y flexible no es tan sencillo.
+Por un lado, en el entorno \textit{cloud}, el estado del arte (SOTA) lo lideran los modelos multimodales nativos, como GPT-4o de OpenAI \cite{gpt4o-2024} o Gemini Live \cite{geminilive-2024}. La revolución de estos sistemas es que prescinden de la clásica cascada (pasar de voz a texto, procesar y generar voz); en su lugar, procesan y generan el audio directamente. Esto los hace muy rápidos y muy naturales. Sin embargo, tienen pegas importantes: son 'cajas negras', obligan a enviar datos privados a servidores de terceros, tienen costes por uso, y montarles un RAG propio profundo y flexible no es tan sencillo.
 
 Por otro lado, en el entorno \textit{local} y \textit{open-source}, el estado del arte sigue apostando por la arquitectura modular (STT $\rightarrow$ LLM $\rightarrow$ TTS), que es exactamente la que se emplea en este proyecto. Herramientas como Whisper \cite{radford-whisper-2022} dominan la transcripción; modelos como Llama 3.1 \cite{meta-llama-3-1-2024} o Mistral-Nemo \cite{mistral-nemo-2024} permiten un razonamiento excelente en hardware doméstico; y sintetizadores ligeros como Kokoro \cite{hexgrad-kokoro-2025} o Qwen3-TTS \cite{qwen-team-2025} logran voces fluidas en tiempo real consumiendo mínimos recursos.
 
 Esto confirma que, aunque las grandes tecnológicas tiren por sistemas monolíticos en la nube, la arquitectura segmentada que usamos en este trabajo sigue siendo el estándar actual y necesario para crear asistentes privados, modulares y con RAG a medida \cite{langchain-2025}. Por ello, comparar el rendimiento de esta estructura en local frente a sus equivalentes en la nube es un ejercicio de total relevancia a día de hoy.
-% \chapter{Estado del Arte}
-
-% En el entorno \textit{cloud}, el SOTA lo lideran modelos multimodales nativos como GPT-4o \cite{gpt4o-2024} o Gemini Live \cite{geminilive-2024}, que procesan y generan audio directamente prescindiendo de la cadena STT→LLM→TTS. Son rápidos y naturales, pero son cajas negras, externalizan datos privados y dificultan la integración de un RAG propio.
-
-% En el entorno local y \textit{open-source}, el estado del arte sigue la arquitectura modular (STT→LLM→TTS): Whisper \cite{radford-whisper-2022} para transcripción, modelos como Llama 3.1 \cite{meta-llama-3-1-2024} o Mistral-Nemo \cite{mistral-nemo-2024} para razonamiento en hardware doméstico, y sintetizadores ligeros como Kokoro \cite{hexgrad-kokoro-2025} para TTS en tiempo real.
-
-% Comparar el rendimiento de esta arquitectura segmentada en local frente a sus equivalentes en la nube es, por tanto, un ejercicio de plena relevancia para quienes priorizan privacidad, modularidad y RAG a medida \cite{langchain-2025}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                        Planteamiento del proyecto                         %
@@ -199,7 +182,7 @@ Esto confirma que, aunque las grandes tecnológicas tiren por sistemas monolíti
 \chapter{Planteamiento del proyecto}
 Para poder implementar un asistente capaz de responder preguntas de forma confiable como el que se plantea, hay que tener en cuenta diversos puntos clave.
 
-Primero que todo, el sistema debe ser cómodo de usar e interactuar con él. Para esto, la opción más intuitiva es que funcione mediante voz. 
+En primer lugar, el sistema debe ser cómodo de usar e interactuar con él. Para esto, la opción más intuitiva es que funcione mediante voz. 
 
 Si se piensa en qué situaciones se suelen usar estos asistentes, lo primero que viene a la mente son situaciones en las que no es posible hacer uso de tecnología, como al conducir, cocinar o incluso en la ducha. Son situaciones en las que se tienen las manos ocupadas y por lo tanto, no se puede hacer uso ni de dispositivos móviles, ni mucho menos de teclado y ratón. Por lo que hacer las preguntas mediante voz, es la solución perfecta.
 
@@ -212,153 +195,9 @@ Ahora bien, que pueda responder a las preguntas, no significa que las pueda hace
 Con esto, el asistente estará dotado de la capacidad de responder a todo en tiempo real, con información fiable y actualizada, y todo ello mediante voz.
 
 
-
-
-% \chapter{Planteamiento del proyecto}
-
-% El objetivo es un asistente de voz capaz de responder preguntas de forma fiable, operado mediante voz para ser usable con las manos ocupadas (conducir, cocinar, etc.). El sistema se articula en cuatro bloques:
-
-% \begin{enumerate}
-%     \item \textbf{Speech to Text (STT):} convierte el audio del usuario en texto.
-%     \item \textbf{RAG local:} un LLM con acceso a documentos propios resuelve preguntas del dominio concreto, evitando alucinaciones mediante contexto verificado.
-%     \item \textbf{Búsqueda web (\textit{fallback}):} cuando el contexto local es insuficiente, se consulta internet para obtener información actualizada.
-%     \item \textbf{Text to Speech (TTS):} devuelve la respuesta al usuario en formato de voz.
-% \end{enumerate}
-
-% La comparativa evalúa la viabilidad de implementar cada bloque de forma totalmente local frente a delegarlo en proveedores \textit{cloud}, bajo la premisa de coste económico directo nulo.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                             Desarrollo                                     %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \chapter{Desarrollo}
-% En esta sección se redacta cómo se han implementado todas las partes del sistema planteado en el apartado anterior. Se comentan las tecnologías utilizadas y las dificultades observadas. 
-
-% El sistema se divide en cuatro bloques principales: Speech to Text, LLM (RAG) con acceso a datos locales y a búsqueda en la web y Text to Speech. A continuación, se explicarán cada uno de ellos.
-
-% El apartado de 'búsquedas web' no se comparará ya que es el mismo para ambas modalidades (Tavily) y no tiene ninguna diferencia a nivel de implementación, por lo que se 'evaluará su calidad'. 
-
-% En los esquemas de más abajo no se incluye la interfaz gráfica, ya que esta solo usa el sistema de forma abstracta. Se encarga de gestionar la interacción con el usuario, grabar el audio y reproducir la respuesta final.
-
-% Por último, mencionar que la elección de modelos se ha hecho lo más parecida posible entre ambos entornos, para evitar sesgos. Se han exprimido al máximo las capacidades locales, y se han igualado los modelos en la nube a estos para que la comparación sea lo más justa posible. Por supuesto, esto bajo la premisa de la que parte el trabajo: viabilidad y facilidad de implementación además de sin coste económico (directo, ya que la luz consumida por un ordenador, aunque poca, no es gratis).
-
-% \section{Implementación Local}
-% Se comentan las tecnologías utilizadas para cada bloque del sistema, y se explica su funcionamiento e integración en un entorno puramente local.
-
-% \subsection{Speech to Text (Whisper)}
-% Para la interpretación de los audios y solucionar la parte del sistema encargada del ASR o Speech to Text, se ha elegido el modelo Whisper \cite{radford-whisper-2022}.
-
-% Whisper es un sistema de reconocimiento automático del habla (ASR) desarrollado por OpenAI. Es un modelo muy potente ya que es capaz no solo de transcribir, sino también de realizar traducción e identificar la lengua de forma nativa. Su arquitectura se basa en \textbf{Transformers} de tipo \textbf{encoder-decoder}, con un entrenamiento exhaustivo sobre miles de horas de audio multilingüe.
-
-% El modelo ha demostrado un funcionamiento excelente, resultando muy rápido y fácil de implementar. Se ha observado que, a niveles prácticos, la precisión es prácticamente idéntica en tareas generales, ofreciendo una experiencia sumamente robusta frente a diferentes acentos y ruidos de fondo.
-
-% Los únicos fallos detectados han sido cuando se mencionaban palabras muy específicas, como siglas o nombres propios, que el modelo no reconocía y transcribía de forma errónea. Por ejemplo, al pronunciar 'MIARFID', el modelo lo transcribía como 'MirFit'. O al decir 'PyCatan', lo transcribía como 'PaiKatan'. Estos errores repercuten en cadena, ya que si el asistente recibe la palabra equivocada, la búsqueda RAG rara vez localizará el documento correcto asociado.
-
-% Aún así, el rendimiento general del modelo ha sido excelente, con una latencia mínima y una precisión más que suficiente para el propósito del asistente.
-
-% \subsection{RAG (Ollama)}
-
-% El sistema implementa una arquitectura RAG con recuperación híbrida, es decir, el sistema trata de recuperar de su información local, y en caso de no encontrar la información busca en la web. El proceso se divide en tres fases principales: indexación, evaluación de relevancia y generación. Todo este componente ha sido implementado usando \textbf{LangChain} \cite{langchain-2025}.
-
-% \subsubsection{Indexación y persistencia de datos}
-% Para la gestión del conocimiento local, el sistema utiliza un flujo de procesamiento de documentos PDF basado en \textbf{LangChain} \cite{langchain-2025}. Los documentos son cargados mediante \textbf{PyPDFLoader} y fragmentados utilizando \textbf{RecursiveCharacterTextSplitter} con un tamaño de \texttt{chunk} de $1000$ caracteres y un \texttt{overlap} de $200$ caracteres para preservar el contexto semántico entre fragmentos. 
-
-% Estos fragmentos se transforman en vectores numéricos utilizando modelos de \textbf{embeddings} de \textbf{Ollama} \cite{ollama-2023}, en concreto se ha utilizado \textbf{mistral-nemo} \cite{mistral-nemo-2024}, y se almacenan en una base de datos vectorial basada en \textbf{ChromaDB}. El sistema incluye una lógica de persistencia que verifica la existencia previa de la base de datos para evitar re-indexaciones innecesarias, es decir, se comprueba si anteriormente se ha generado esta base de datos, y de esta forma se optimiza el tiempo de ejecución.
-
-% \subsubsection{Recuperación y evaluación de relevancia}
-% Una vez recibida la transcripción del audio, el sistema realiza una búsqueda de similitud en el \textit{vector store} recuperando los $k=10$ fragmentos más cercanos. Antes de proceder a la generación, se introduce un paso para evaluar la relevancia y comprobar mediante un LLM (\textbf{llama3.1}) \cite{meta-llama-3-1-2024} si el contexto recuperado localmente es suficiente o no para generar la respuesta. Los prompts serían:
-% \begin{lstlisting}[language=Python]
-% prompt_evaluador = ChatPromptTemplate.from_messages([
-%     ('system', 'Eres un evaluador de relevancia. Responde estrictamente con una palabra: 'SI' o 'NO'.'),
-%     ('human', f'Pregunta: {pregunta} \n\n Contexto recuperado: {documentos} \n\n ¿Contiene este contexto la informacion necesaria para responder?')
-% ])
-% \end{lstlisting}
-
-% A partir de la respuesta obtenida se tendría que:
-% \begin{itemize}
-%     \item Si el contexto recuperado es suficiente para responder a la consulta, se procede con la información local.
-%     \item En caso de que el contexto local sea insuficiente o irrelevante, el sistema activa un mecanismo de \textit{fallback} en que utiliza la herramienta \textbf{TavilySearchResults} \cite{tavily-2024} para obtener la información de la web. Para este caso, se ha establecido a 5 el número máximo de resultados que se devolverán por búsqueda y se ha indicado que se realice una búsqueda avanzada. 
-% \end{itemize}
-
-% \subsubsection{Generación de respuesta final}
-% La fase final aprovecha el contexto obtenido y lo envía a un modelo para generar la salida (el mismo \textbf{llama3.1} en local).
-
-% Para distinguir entre la información obtenida de la web y la extraída de los documentos, se dispone de la siguiente lógica de \textit{fallback}:
-% \begin{lstlisting}[language=Python]
-% if es_relevante:
-%     print(' - [OK] Informacion encontrada en documentos locales.')
-%     contexto_final = contexto_local
-%     fuente_info = 'tus documentos internos'
-% else:
-%     print(' - [!] Informacion local insuficiente o irrelevante. Consultando internet...')
-%     web_results = search_tool.invoke({'query': transcription})
-%     contexto_final = '\n'.join([res['content'] for res in web_results])
-%     fuente_info = 'fuentes externas en internet'
-% \end{lstlisting}
-
-% El \textit{prompt} del sistema está configurado para actuar como un asistente de investigación, obligando al modelo a entregar una respuesta en texto plano, sin formatos Markdown, asegurando una salida natural, fluida y concisa que se adapta a seguir un formato de mensaje de voz. El prompt utilizado es:
-% \begin{lstlisting}[language=Python]
-% system_prompt = (
-%     'Eres un asistente de investigacion. Responde de forma natural, fluida y concisa, no des detalles innecesarios y ve directamente al grano. '
-%     f'La informacion proviene de {fuente_info}. '
-%     'IMPORTANTE: No uses negritas, ni asteriscos, ni listas, ni ningun formato markdown. '
-%     'Escribe todo en un parrafo o parrafos de texto plano, como si fuera una carta o un mensaje de voz.'
-%     '\n\nContexto: {context}'
-% )
-
-% prompt_final = ChatPromptTemplate.from_messages([
-%     ('system', system_prompt),
-%     ('human', '{input}'),
-% ])
-% \end{lstlisting}
-
-
-
-% \subsection{Text to Speech (Kokoro)}
-% Una vez que el sistema RAG ha generado la respuesta de texto, lo único que queda es comunicar el feedback al usuario mediante voz en local.
-
-% Para ello, se ha integrado Kokoro \cite{hexgrad-kokoro-2025}, un modelo de síntesis de voz (TTS) de código abierto que destaca por su gran eficiencia. Está basado en una arquitectura híbrida que usa conceptos de \textit{StyleTTS2} \cite{li-styletts2-2023} e \textit{ISTFTNet} \cite{kaneko-istftnet-2022}. Al tener únicamente 82 millones de parámetros, usa una red neuronal muy ligera para predecir el estilo y la duración de los fonemas.
-
-
-% Gracias a este diseño compacto, consigue generar audio en menos del tiempo que cuesta reproducirlo, con una latencia mínima. A nivel de recursos, apenas ocupa memoria en la GPU, dejando espacio libre para el resto del sistema (como el LLM o el reconocimiento de voz). 
-
-
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.5\linewidth]{images/structure_local.png}
-%     \caption{Estructura del sistema del asistente de voz usando modelos \textit{locales} para cada fase.}
-%     \label{fig:structure_local}
-% \end{figure}
-
-% \section{Implementación Cloud}
-% Dado que la integración paso a paso de los componentes ha sido muy similar a la abordada en la sección local, no se volverá a explicar su funcionamiento a profundidad, se ha sustituido el grueso de las librerías locales por llamadas y peticiones API a los proveedores, reutilizando la misma lógica de orquestación y \textit{fallback} entre fuentes de información. Para el RAG los mismos prompts etc.
- 
-% Inicialmente, el planteamiento ideal era concentrar y delegar todas las tareas (STT, LLMs, TTS) a un único servicio, en este caso AWS. Unificar pretendía simplificar la gestión e integración, pero rápidamente emergieron problemas. Se intentaron usar los servicios completos de AWS, pero se encontraron trabas limitantes a nivel de validación de cuentas, suscripciones bloqueadas y fallos donde el servicio simplemente no funcionaba tras el alta de la tarjeta. Aunque el pago y validación deberían ser un trámite rápido, las demoras burocráticas del proveedor forzaron la paralización de la solución centralizada.
-
-% A consecuencia de estas restricciones e impedimentos, se hizo imperativo diversificar y orquestar el sistema como un collage de distintos proveedores externos para cada fase:
-% \begin{itemize}
-%     \item \textbf{GROQ} \cite{groq-2025}\textbf{:} Se empleó para el uso del LLM que gestiona y genera la lógica conversacional.
-%     \item \textbf{Hugging Face} \cite{huggingface-2025}\textbf{:} Para la obtención de los modelos de \textit{embeddings} para el RAG.
-%     \item \textbf{Tavily:} Se recurrió a esta API para las búsquedas web.
-%     \item \textbf{AWS} \cite{aws-2025} \textbf{(limitado):} Tras sortear algunas barreras iniciales...
-% \end{itemize}
-
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.5\linewidth]{images/structure_cloud.png}
-%     \caption{Estructura del sistema del asistente de voz usando proveedores \textit{cloud} para cada fase.}
-%     \label{fig:structure_cloud}
-% \end{figure}
-
-
-% \section{Interfaz gráfica}
-% Para el desarrollo de la interfaz gráfica, se ha hecho uso de la librería \texttt{Streamlit} \cite{streamlit-2025}. 
-
-% A partir de la documentación de esta y con ayuda de LLMs, se generó una plantilla base por la que empezar y poder integrar el sistema en la \textit{pipeline}. Se han ajustado las rutas y se han añadido opciones para elegir qué configuración (\texttt{Local o cloud}) utilizar.
-
-% Con todo esto, se puede lanzar una interfaz gráfica muy sencilla que permite grabar o subir preguntas en tiempo real. A los pocos segundos, se obtiene una respuesta por voz.
-
 \chapter{Desarrollo}
 
-El sistema se divide en cuatro bloques (STT, RAG, búsqueda web y TTS). Se comentan en detalle únicamente esas secciones; se deja de lado la explicación de la búsqueda web, que es idéntica en ambas modalidades, basada en Tavily \cite{tavily-2024} y es cuestión una llamada MPC; y la interfaz gráfica, que usa \texttt{Streamlit} \cite{streamlit-2025} y gestiona la interacción de forma abstracta: graba el audio del usuario, lo pasa al pipeline y reproduce la respuesta final en voz.
+El sistema se divide en cuatro bloques (STT, RAG, búsqueda web y TTS). Se comentan en detalle únicamente esas secciones; se deja de lado la explicación de la búsqueda web, que es idéntica en ambas modalidades, basada en Tavily \cite{tavily-2024} y es cuestión de una llamada MPC; y la interfaz gráfica, que usa \texttt{Streamlit} \cite{streamlit-2025} y gestiona la interacción de forma abstracta: graba el audio del usuario, lo pasa al pipeline y reproduce la respuesta final en voz.
 
 Los modelos se eligieron lo más equivalentes posible entre ambos entornos, exprimiendo al máximo las capacidades locales para evitar sesgos. Toda la comparativa parte además de la premisa de coste económico directo nulo.
 
@@ -377,20 +216,20 @@ Se integró Whisper \cite{radford-whisper-2022} en su variante \texttt{large-v3}
 El modelo funciona muy bien como se observa en los resultados. La integración es sencilla y eficiente. Durante las pruebas se detecta una limitación práctica: el modelo falla con siglas o nombres propios muy específicos del dominio ('MIARFID' → 'MirFit'; 'PyCatan' → 'PaiKatan'). Estos errores se propagan en cadena, pues si la transcripción es incorrecta el RAG raramente localiza el documento correcto y la respuesta final queda comprometida.
 
 \subsection{RAG (Ollama)}
-Todo el componente RAG se orquestó con \textbf{LangChain} \cite{langchain-2025}, aprovechando Ollama \cite{ollama-2023} como backend de inferencia local. Su uso se basa en introducir indexar, dar la transcripción, recuperar y generar la respuesta. 
+Todo el componente RAG se orquestó con \textbf{LangChain} \cite{langchain-2025}, aprovechando Ollama \cite{ollama-2023} como backend de inferencia local. Su uso se basa en indexar documentos, recibir la transcripción, recuperar contexto y generar la respuesta. 
 
 \subsubsection{Indexación y persistencia}
-Los PDFs (nuetra información / contexto local) se cargan con \texttt{PyPDFLoader} y se trocean con \texttt{RecursiveCharacterTextSplitter} (\texttt{chunk}=1000 chars, \texttt{overlap}=200). Cada chunk se vectoriza con el modelo de embeddings \textbf{mistral-nemo} \cite{mistral-nemo-2024} servido por Ollama y se persiste en \textbf{ChromaDB}. 
+Los PDFs (nuestra información / contexto local) se cargan con \texttt{PyPDFLoader} y se trocean con \texttt{RecursiveCharacterTextSplitter} (\texttt{chunk}=1000 chars, \texttt{overlap}=200). Cada chunk se vectoriza con el modelo de embeddings \textbf{mistral-nemo} \cite{mistral-nemo-2024} servido por Ollama y se persiste en \textbf{ChromaDB}. 
 
-Esta parte es de las más importantes, ya que el rendimiento del RAG depende en gran medida de la calidad de la indexación. También por obvias razones de eficiencia, si la base de datos ya existe para evitar re-indexaciones innecesarias.
+Esta parte es de las más importantes, ya que el rendimiento del RAG depende en gran medida de la calidad de la indexación. También por obvias razones de eficiencia, se comprueba si la base de datos ya existe para evitar re-indexaciones innecesarias.
 
 \subsubsection{Evaluación de relevancia}
-Antes de que el LLM genere la respuesta final del usuario, se recuperan los $k=10$ chunks más similares a la consulta y se le pasa ese contexto a \textbf{llama3.1} \cite{meta-llama-3-1-2024} con un prompt evaluador para que solo responda 'SIs' o 'NOs':
+Antes de que el LLM genere la respuesta final del usuario, se recuperan los $k=10$ chunks más similares a la consulta y se le pasa ese contexto a \textbf{llama3.1} \cite{meta-llama-3-1-2024} con un prompt evaluador para que solo responda 'SÍ' o 'NO':
 
 \begin{lstlisting}[language=Python]
 prompt_evaluador = ChatPromptTemplate.from_messages([
-    ('system', 'Eres un evaluador de relevancia. Responde estrictamente con una palabra: 'SI' o 'NO'.'),
-    ('human', f'Pregunta: {pregunta} \n\n Contexto recuperado: {documentos} \n\n ¿Contiene este contexto la informacion necesaria para responder?')
+    ('system', 'Eres un evaluador de relevancia. Responde estrictamente con una palabra: 'SÍ' o 'NO'.'),
+    ('human', f'Pregunta: {pregunta} \n\n Contexto recuperado: {documentos} \n\n ¿Contiene este contexto la información necesaria para responder?')
 ])
 \end{lstlisting}
 
@@ -398,15 +237,15 @@ Esto es únicamente para evaluar si el contexto local es suficiente o no para ge
 
 
 \subsubsection{Generación de respuesta}
-Teniendo del contexto adecuado, en ambos casos, el prompt de la respuesta indica explícitamente al modelo a responder en texto plano sin Markdown, formato imprescindible para que la síntesis de voz no verbalice asteriscos ni guiones:
+Teniendo el contexto adecuado, en ambos casos, el prompt de la respuesta indica explícitamente al modelo a responder en texto plano sin Markdown, formato imprescindible para que la síntesis de voz no verbalice asteriscos ni guiones:
 
 \begin{lstlisting}[language=Python]
 system_prompt = (
-    'Eres un asistente de investigacion. Responde de forma natural, fluida y concisa, '
+    'Eres un asistente de investigación. Responde de forma natural, fluida y concisa, '
     'no des detalles innecesarios y ve directamente al grano. '
-    f'La informacion proviene de {fuente_info}. '
-    'IMPORTANTE: No uses negritas, ni asteriscos, ni listas, ni ningun formato markdown. '
-    'Escribe todo en un parrafo o parrafos de texto plano, como si fuera una carta o un mensaje de voz.'
+    f'La información proviene de {fuente_info}. '
+    'IMPORTANTE: No uses negritas, ni asteriscos, ni listas, ni ningún formato markdown. '
+    'Escribe todo en un párrafo o párrafos de texto plano, como si fuera una carta o un mensaje de voz.'
     '\n\nContexto: {context}'
 )
 \end{lstlisting}
@@ -423,9 +262,9 @@ La implementación de local a cloud es bastante directa. Se hace uso de la misma
 La intención inicial es centralizar todos los servicios en \textbf{AWS}, pero problemas de validación de cuenta y suscripciones bloqueadas obligan a diversificar en un collage de proveedores:
 
 \begin{itemize}
-    \item \textbf{GROQ} \cite{groq-2025}: Nos provee de una vesrión de Whisper igualita la usada en el entorno local. Además de poder acceder a algunos LLM como \textbf{llama-3.1-8b-instant} para hacer lo mismo que en el entorno local. Las llamadas se realizan mediante el wrapper \texttt{ChatGroq} de LangChain, lo que hizo el cambio completamente transparente a nivel de código.
+    \item \textbf{Groq} \cite{groq-2025}: Nos provee de una versión de Whisper igual a la usada en el entorno local. Además de poder acceder a algunos LLM como \textbf{llama-3.1-8b-instant} para hacer lo mismo que en el entorno local. Las llamadas se realizan mediante el wrapper \texttt{ChatGroq} de LangChain, lo que hizo el cambio completamente transparente a nivel de código.
     \item \textbf{Hugging Face} \cite{huggingface-2025}: los embeddings para indexar todos los documentos se generan con \texttt{sentence-transformers/all-MiniLM-L6-v2} vía la clase \texttt{HuggingFaceEmbeddings}, sustituyendo directamente a los embeddings de Ollama en el paso de indexación y recuperación.
-    \item \textbf{AWS Polly} \cite{aws-2025}: se llama al servicio mediante \texttt{boto3}, para que devuelva un audio \texttt{mp3} con el texto proporcionado. Todo super parecido a la integración de Kokoro.
+    \item \textbf{AWS Polly} \cite{aws-2025}: se llama al servicio mediante \texttt{boto3}, para que devuelva un audio \texttt{mp3} con el texto proporcionado. Todo parecido a la integración de Kokoro.
 \end{itemize}
 
 Esta fragmentación introduce una complejidad operativa notable: cada proveedor gestiona su propia autenticación (API keys, credenciales AWS), cuotas de uso y condiciones de servicio, elevando el esfuerzo de despliegue respecto al entorno local. Toda la experimentación se realiza dentro de los planes gratuitos de cada proveedor, sin llegar al límite de uso en ningún caso. A fecha de Mayo de 2026, existe el riesgo de que alguno de los servicios cambie sus condiciones o limite el acceso, lo cual es inherente a depender de terceros.
@@ -442,118 +281,6 @@ Esta fragmentación introduce una complejidad operativa notable: cada proveedor 
 %                             Resultados y Análisis                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-% \chapter{Resultados y Análisis}
-% Para poder evaluar y cuantificar la competitividad del entorno local frente a las soluciones en la nube, se llevaron a cabo una serie de pruebas sistemáticas. Se diseñó un experimento que parte de la grabación previa de 30 audios con preguntas y peticiones variadas, obteniendo un total de 60 ejecuciones evaluadas: 30 de cada modalidad (local y cloud).
-
-% \section{Metodología de Evaluación}
-% La recogida de métricas se segmentó en distintas áreas para analizar de manera global el desempeño del sistema. Se recopilaron los siguientes parámetros:
-
-% \begin{itemize}
-%     \item \textbf{Tiempos de ejecución:} Se midieron de forma automatizada insertando marcas en el código. El tiempo total por petición se describe matemáticamente como la suma de sus fases: $ T_{total} = T_{STT} + T_{RAG} + T_{TTS} $
-
-%     Ya que la búsqueda web es la misma en ambas modalidades, no se incluye en esta fórmula para evitar sesgos, aunque se tiene en cuenta su impacto en el tiempo de respuesta final. 
-    
-%     \item \textbf{Precisión del STT (WER):} Para verificar qué tan correcta era la transcripción del audio comparado con el texto real, se empleó la métrica \textit{Word Error Rate}. Se estandarizaron internamente ambas cadenas usando el módulo \texttt{werpy.normalize} \cite{werpy-2024} que, en esencia, consiste en secuenciar las frases pasando todo a minúsculas, eliminando los signos de puntuación, borrando los espacios sobrantes y homogeneizando los caracteres especiales.
-    
-%     \item \textbf{RAG Matching Source:} Esta métrica dictamina, de forma binaria ($0$ ó $1$), si el sistema recurrió correctamente a la fuente de información adecuada. Si el dato necesario estaba disponible localmente y el sistema usaba esa base, sumaba 1. Si consultaba internet ignorándolo, puntuaba 0 y viceversa con la información Web.
-    
-%     \item \textbf{RAG Matching Response:} Valora si el sistema devolvió o no la respuesta correcta final independientemente de la fuente de donde provino (o si lo dedujo de su conocimiento interno). Es aquí donde se detectó el impacto de la fuente comentado previamente: si el sistema infiere que \textit{no} dispone del contexto y sale a la web, aunque no sea lo ideal, es muy posible que de la respuesta correcta. Por desgracia en la contraparte, cuando el sistema evalúa erróneamente que \textit{sí} tiene la respuesta en el documento y se aísla, el LLM padece de la escasez del contexto y termina forzando una alucinación (es decir, proporcionando un dato incorrecto o inventado).
-    
-%     \item \textbf{TTS Score:} Debido a la subjetividad del paradigma conversacional, se empleó una escala manual del $0$ al $5$ valorando parámetros humanos tales como la fluidez, pausas lógicas, gusto general y naturalidad a la hora de escuchar la respuesta devuelta por los altavoces. En esencia, se evaluó según el 'como les pareció a los evaluadores'.
-% \end{itemize}
-
-% \section{Extracción de Resultados}
-% La tabla \ref{tab:results_metrics} y el gráfico ilustrativo en la figura \ref{fig:results_plots} encapsulan el resumen de datos cosechados a través de las 60 ejecuciones analizadas en ambas modalidades de inferencia.
-
-% \begin{table}[htpb]
-% \centering
-% \caption{Métricas obtenidas en la evaluación de los 30 audios.}
-% \label{tab:results_metrics}
-% \renewcommand{\arraystretch}{1.2}
-% \begin{tabular}{@{}lrr@{}}
-% \toprule
-% \textbf{Métrica}                  & \textbf{Local} & \textbf{Cloud} \\ \midrule
-% Transcribe Time (s)               & 3.95           & 0.41           \\
-% RAG Time (s)                      & 6.04           & 31.98          \\
-% TTS Time (s)                      & 1.03           & 0.86           \\
-% \textbf{Total Time (s)}           & \textbf{11.02} & \textbf{33.25} \\ \midrule
-% Transcription WER (\%)            & 5.22\%         & 6.32\%         \\ \midrule
-% RAG Matching Source (\%)          & 80.00\%        & 90.00\%        \\
-% RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\
-% RAG Matching Source (Raw)         & 24 / 30        & 27 / 30        \\
-% RAG Matching Response (Raw)       & 19 / 30        & 25 / 30        \\ \midrule
-% \textbf{TTS Score (0-100)}          & \textbf{50}  & \textbf{90}  \\ \bottomrule
-% \end{tabular}
-% \end{table}
-
-% \begin{figure}[H]
-%     \centering
-% \begin{tikzpicture}
-%     \begin{groupplot}[
-%         group style={
-%             group size=1 by 3,
-%             vertical sep=2cm,
-%             x descriptions at=edge bottom,
-%         },
-%         ybar,
-%         width=15cm,
-%         height=4cm,
-%         /pgf/bar width=1.2cm, % Fixed the bar width path just in case
-%         enlarge x limits=0.2,
-%         ylabel style={font=\small},
-%         tick label style={font=\small},
-%         nodes near coords,
-%         every node near coord/.append style={font=\scriptsize, /pgf/number format/fixed, /pgf/number format/precision=2},
-%         legend style={at={(1.05,1)}, anchor=north west, draw=none, font=\small},
-%         symbolic x coords={trans_time, rag_time, tts_time, total_time, wer, matching_src, matching_resp, tts_score, src_raw, resp_raw},
-%         xtick=data,
-%         grid=major,
-%         grid style={dashed, gray!30}
-%     ]
-
-%     % --- TOP PLOT: Time Metrics ---
-%     \nextgroupplot[
-%         title=\textbf{Time Metrics Comparison},
-%         ylabel={Time (seconds)},
-%         xticklabels={Transcribe Time, RAG Time, TTS Time, Total Time},
-%         xtick={trans_time, rag_time, tts_time, total_time},
-%         ymax=45
-%     ]
-%     \addplot[fill=localblue, draw=none] coordinates {(trans_time,3.95) (rag_time,6.04) (tts_time,1.03) (total_time,11.02)};
-%     \addplot[fill=cloudorange, draw=none] coordinates {(trans_time,0.41) (rag_time,31.98) (tts_time,0.86) (total_time,33.25)};
-%     \legend{Local, Cloud}
-
-%     % --- MIDDLE PLOT: Scores & WER ---
-%     \nextgroupplot[
-%         title=\textbf{WER, RAG Matching (\%) and TTS Scores},
-%         ylabel={Score (\%)},
-%         xticklabels={Transcription WER, RAG Matching Src, RAG Matching Resp, TTS Score},
-%         xtick={wer, matching_src, matching_resp, tts_score},
-%         ymax=115
-%     ]
-%     \addplot[fill=localblue, draw=none] coordinates {(wer,5.22) (matching_src,80.00) (matching_resp,63.33) (tts_score,50)};
-%     \addplot[fill=cloudorange, draw=none] coordinates {(wer,6.32) (matching_src,90.00) (matching_resp,83.33) (tts_score,90)};
-
-%     % --- BOTTOM PLOT: Raw Sums ---
-%     \nextgroupplot[
-%         title=\textbf{Total RAG Matching (Raw Sums)},
-%         ylabel={Raw Sum},
-%         xticklabels={RAG Matching Source Raw, RAG Matching Response Raw},
-%         xtick={src_raw, resp_raw},
-%         ymax=35,
-%         ymin=0,
-%         /pgf/bar width=2.5cm,
-%         enlarge x limits=0.5 
-%     ]
-%     \addplot[fill=localblue, draw=none] coordinates {(src_raw,24) (resp_raw,19)};
-%     \addplot[fill=cloudorange, draw=none] coordinates {(src_raw,27) (resp_raw,25)};
-
-%     \end{groupplot}
-% \end{tikzpicture}
-%     \caption{Visualización gráfica del contraste de resultados (Tiempos, \% de acierto y Conteo Crudo).}
-%     \label{fig:results_plots}
-% \end{figure}
 \chapter{Resultados y Análisis}
 
 Una vez implementado todo el sistema en ambos entornos, se diseña un experimento con 30 audios pregrabados, obteniendo 60 ejecuciones (30 por modalidad) para evaluar su rendimiento. 
@@ -648,7 +375,7 @@ RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\ \midrule
     \addplot[fill=cloudorange, draw=none] coordinates {(src_raw,27) (resp_raw,25)};
     \end{groupplot}
 \end{tikzpicture}
-    \caption{Contraste de resultados: tiempos, porcentajes de acierto y conteo crudo (de las 30 pruebas de cada uno, cuantas han acertado).}
+    \caption{Contraste de resultados: tiempos, porcentajes de acierto y conteo crudo (de las 30 pruebas de cada uno, cuántas han acertado).}
     \label{fig:results_plots}
 \end{figure}
 
@@ -656,7 +383,7 @@ RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\ \midrule
 
 
 \begin{itemize}
-    \item \textbf{STT:} Ambas opciones son casi \textit{plug and play}. La nube es $\approx10 \times$ más rápida (0.41s vs 3.95s), pero ninguna representa un cuello de botella crítico. WER prácticamente idéntico (5.22\% local vs 6.32\% cloud). Ambos con la limitación común idenficada de siglas y nombres específicos.
+    \item \textbf{STT:} Ambas opciones son casi \textit{plug and play}. La nube es $\approx10 \times$ más rápida (0.41s vs 3.95s), pero ninguna representa un cuello de botella crítico. WER prácticamente idéntico (5.22\% local vs 6.32\% cloud). Ambos con la limitación común identificada de siglas y nombres específicos.
     
     \item \textbf{RAG:} LangChain abstrae por completo la diferencia entre Ollama y los proveedores cloud, permitiendo reutilizar el mismo código cambiando solo la instancia del modelo. La nube supera en precisión final (83.33\% vs 63.33\%) pero es $\approx \times 5$ más lenta en el tiempo de orquestación (31.98s vs 6.04s). El evaluador local (llama3.1) mostró mayor tendencia a descartar contexto válido y derivar búsquedas a la web innecesariamente, especialmente en preguntas sobre figuras conocidas (Messi). 
     
@@ -669,7 +396,7 @@ RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\ \midrule
     \item \textbf{Hardware y privacidad:} 
     Además, hay que tener en cuenta otras consideraciones no cuantificables pero relevantes a la hora de elegir entre una opción u otra: La privacidad de los datos, las dependencias de terceros, la escalabilidad, la flexibilidad para cambiar componentes o la necesidad de hardware específico. 
     
-    En este sentido: La opción \textbf{local} ofrece máxima  \textbf{privacidad} y control total sobre los datos,  \textbf{sin depender de terceros} ni de sus políticas. Sin embargo,  \textbf{requiere hardware} potente (VRAM/RAM) y puede ser más difícil de escalar o mantener. La \textbf{nube} externaliza la gestión y el mantenimiento, ofrece \textbf{escalabilidad} instantánea, calidad superior en algunos caso (ya que son modelos privados de empresas) y ofrece un \textbf{gran catálogo de modelos} (aún que a nivel opensource cada vez tenemos más opciones), pero a costa de la privacidad y la dependencia de terceros.
+    En este sentido: La opción \textbf{local} ofrece máxima \textbf{privacidad} y control total sobre los datos, \textbf{sin depender de terceros} ni de sus políticas. Sin embargo, \textbf{requiere hardware} potente (VRAM/RAM) y puede ser más difícil de escalar o mantener. La \textbf{nube} externaliza la gestión y el mantenimiento, ofrece \textbf{escalabilidad} instantánea, calidad superior en algunos casos (ya que son modelos privados de empresas) y ofrece un \textbf{gran catálogo de modelos} (aunque a nivel opensource cada vez tenemos más opciones), pero a costa de la privacidad y la dependencia de terceros.
 
     Sobre todo, destacar la privacidad y la dependencia del entorno local que requiere VRAM y RAM considerables. Sin hardware suficiente, la nube es la única opción viable. A cambio, la nube externaliza los datos a terceros y depende de planes y políticas que pueden cambiar. 
     
@@ -677,9 +404,9 @@ RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\ \midrule
 
 \subsection{Curiosidades y fallos observados}
 \begin{itemize}
-    \item \textbf{STT:} Siglas de dominio específico transcritas incorrectamente por los ASRs, ('MIARFIDs'→'MirFits', 'PyCatans'→'PaiKatans') provocan fallos en cadena en el RAG que no permiten recuperar el contexto correcto y comprometen la respuesta final.
+    \item \textbf{STT:} Siglas de dominio específico transcritas incorrectamente por los ASRs, ('MIARFID'→'MirFit', 'PyCatan'→'PaiKatan') provocan fallos en cadena en el RAG que no permiten recuperar el contexto correcto y comprometen la respuesta final.
     \item \textbf{RAG — fuente incorrecta:} El evaluador ignoraba contexto local válido y forzaba búsqueda web (frecuente en preguntas sobre Messi). La cosa es que de normal, cuando el LLM se queda con contexto insuficiente, alucina la respuesta. En cambio, al salir a la web, aunque no sea lo ideal, es más probable que acierte. Esto se refleja en la diferencia de precisión entre ambos entornos.
-    \item \textbf{RAG — inconsistencia web:} Preguntas con respuesta subjetiva o no determinista ('¿raza de perro más peluda?s') generaban respuestas distintas en cada ejecución ('Chow Chows', 'Akitas', 'Pullis'...) dependiendo de la fuente consultada por Tavily. Véase Figura~\ref{fig:web_search_inconsis}.
+    \item \textbf{RAG — inconsistencia web:} Preguntas con respuesta subjetiva o no determinista ('¿raza de perro más peluda?') generaban respuestas distintas en cada ejecución ('Chow Chows', 'Akitas', 'Pullis'...) dependiendo de la fuente consultada por Tavily. Véase Figura~\ref{fig:web_search_inconsis}.
 \end{itemize}
 
 \begin{figure}[H]
@@ -688,75 +415,6 @@ RAG Matching Response (\%)        & 63.33\%        & 83.33\%        \\ \midrule
     \caption{Inconsistencia del evaluador RAG: prefiere la web ignorando datos locales disponibles.}
     \label{fig:web_search_inconsis}
 \end{figure}
-
-% \section{Tiempos de respuesta}
-% El sistema cloud es de media \textbf{3× más lento} que el local (33.25s vs 11.02s), penalizado principalmente por el RAG (31.98s). Este es el factor de experiencia de usuario más crítico, por encima incluso de la calidad de voz.
-
-% \section{Arquitectura híbrida sugerida}
-% Combinar \textbf{STT y TTS en la nube} con \textbf{RAG local} ofrece el mejor equilibrio: latencia estimada de \textbf{7.31s}, máxima privacidad en los datos procesados y calidad de voz sobresaliente. El único compromiso es la limitación en la elección de LLM local, cada vez menos relevante dada la creciente oferta de modelos pequeños y eficientes.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                    COMPARATIVA 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \section{Comparativa implementación}
-% Se desglosan ahora las diferencias observadas en cada fase del sistema, analizando tanto el rendimiento como la facilidad de implementación y los resultados obtenidos.
-
-
-% \subsection{Modelos STT}
-% Tanto en la versión local como en la nube, la integración del sistema de reconocimiento de voz (STT) ha resultado en un proceso casi \textit{plug and play} en ambas opciones. Sin embargo, a nivel de rendimiento sí se observa una diferencia importante: el procesamiento externalizado a la nube es considerablemente más rápido. A pesar de esto, ambos sistemas transcriben a una velocidad sumamente alta que no supone un factor de cuello de botella crítico para la viabilidad del flujo en general.
-
-% \subsection{RAG y Flexibilidad del Ecosistema}
-% En cuanto al componente RAG, es importante puntualizar el grado de facilidad con el que se adaptó el sistema de una modalidad a otra. Con la misma implementación de código para una opción, se pudo introducir la otra directamente. 
-
-% \textbf{LangChain} permite utilizar tanto los modelos locales (vía Ollama) como los LLMs y embeddings de proveedores externos, abstrayendo estas diferencias bajo la misma interfaz. De este modo, en el desarrollo final, con instanciar el modelo apuntando al servicio correspondiente, el RAG completo ya estaba funcionando.
-
-% \subsection{Modelos TTS}
-% En la fase de síntesis de voz, se puede observar una gran diferencia entre Kokoro (modelo local) y el uso de AWS como modelo \textit{cloud}. 
-
-% La principal desventaja del modelo local es el resultado final: aunque la voz es clara y se entiende perfectamente, carece un poco de 'personalidad' y puede sonar ligeramente plana en comparación con las voces de última generación.
-
-% El uso de la alternativa en la nube aporta resultados que superan con fluidez al modelo local. La voz generada por los servicios web es mucho más natural, incluyendo pausas lógicas e inflexiones. Lo más llamativo de esta comparativa es que esta inmensa mejora en la naturalidad se consigue con una latencia incluso menor que la del modelo local.
-
-% Tras analizar ambas opciones, la mejor opción se hace clara: a no ser que se tenga la necesidad de un sistema completamente local por temas de privacidad, la opción en la nube es claramente superior en esta fase, tanto a nivel de calidad como de rendimiento.
-
-% \subsection{Complejidad de Integración Múltiple}
-% Si se delega 'la computación' en 'otros', la implementación teóricamente debería ser más sencilla: sin gestión de dependencias y sin preocupaciones por el mantenimiento del hardware. Sin embargo, recurrir a proveedores \textit{cloud} añade un grado de complejidad técnica y burocrática notable al proceso de desarrollo una vez que la cuenta única falló.
-
-% Desde una perspectiva crítica, ensamblar estas piezas dispares es engorroso frente al modelo local. Cada proveedor \textit{cloud} dicta sus propios mecanismos de autenticación (API Keys), conexiones, cuotas de uso y precios... Toda esta fragmentación eleva la complejidad de despliegue y el desarrollo del código, a pesar de que su latencia y respuesta sea altamente competente.
-
-% \subsection{Curiosidades y Fallos Observados}
-% Durante las fases de pruebas del sistema completo, salieron comportamientos inusuales y limitaciones prácticas que conviene destacar, ya que muestra los sesgos y el margen de error presente tanto en los sistemas generativos como en los modelos de transcripción.
-
-% Por un lado, respecto al reconocimiento de voz (STT), se detectaron limitaciones fonéticas al intentar transcribir siglas o nombres propios muy específicos del dominio. Por ejemplo, al pronunciar de forma natural las siglas del máster en concreto ('MIARFID'), el modelo fallaba repetidamente forzando la transcripción a la palabra inventada ``MirFit'' o similar. Ocurría un fenómeno idéntico al nombrar el repositorio del 'PyCatan', el cual terminaba siendo transcrito como 'PaiKatan'. Estos fallos repercuten en cadena; si el asistente recibe la palabra equivocada, la búsqueda RAG rara vez localizará el documento correcto asociado, y si el LLM no es capaz de inferir el término correcto, la respuesta final se ve comprometida.
-
-% Por otro lado, se observó una inconsistencia notable en la arquitectura RAG a la hora de determinar correctamente la fuente a consultar. En ocasiones, la respuesta a una pregunta se encontraba perfectamente indexada en los ficheros locales. Sin embargo, el LLM evaluador (llama3.1) decidía que el contexto local era insuficiente o irrelevante, forzando un \textit{fallback} hacia la búsqueda web en internet: Sobre todo en preguntas sobre Messi. 
-
-% Luego por ejemplo, si las 'fuentes de la verdad' no son fiables o varían, como algunas veces pasa en internet, no se pueden asegurar respuestas consistentes o correctas. Si el sistema hace uso de la búsqueda web, y esta devuelve información errónea, el modelo generará una respuesta incorrecta, aunque el proceso de recuperación haya funcionado correctamente. Un ejemplo ha sido la pregunta '\textit{¿Cuál es la raza de perro más peluda según los expertos?}' a lo que cada ejecución (cloud o local), respondía aleatoriamente con '\textit{Chow Chow}', '\textit{Akita}' o '\textit{Pulli}'...
-% (véase la Figura \ref{fig:web_search_inconsis}).
-
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.35\linewidth]{images/web-seach-inconsistency.png}
-%     \caption{Ejemplo de inconsistencia en el sistema RAG, donde el evaluador prefiere buscar en la web ignorando los datos locales explícitamente disponibles.}
-%     \label{fig:web_search_inconsis}
-% \end{figure}
-
-% \subsection{Requisitos Computacionales, privacidad y elección de modelos}
-% Donde realmente recae el punto clave a la hora de decidir entre abordar una implementación puramente local o externalizar su computación a la nube, es en los requisitos físicos de la máquina y la privacidad. 
-
-% Alojar LLM o transformers de gran tamaño como algunas versiones de Whisper, implica requerimientos considerables de VRAM para la GPU y memoria RAM. Además de depender totalmente de agentes externos, pasando por el riesgo de externalizar los datos a terceros, lo que puede ser un gran inconveniente para muchos usuarios.
-
-% Por ello, si se dispone del hardware necesario para sostener las ejecuciones de manera fluida y concurrente, la versión local es una muy buena opción. De lo contrario, si las capacidades de la máquina están limitadas, se puede suplir este déficit usando las APIs de los proveedores externos \textit{cloud}, garantizando una ejecución sin cuellos de botella y con un catálogo mucho mayor de modelos y servicios disponibles.
-
-% Se recuerda que la comparativa se ha hecho usando los modelos más parecidos posibles, exprimiendo al máximo la capacidad local e igualando los modelos en la nube a estos para evitar sesgos. Sin embargo, en un entorno real, la elección de modelos sería mucho más flexible y se podrían usar versiones más potentes en la nube que no podrían ser ejecutadas localmente, lo que aumentaría aún más la brecha de calidad entre ambas opciones. 
-
-% Además de esto, se han realizado todas las ejecuciones cloud con suscripciones gratuitas de los proveedores, SIN haber llegado al tope de uso. Esto implica dos cosas: 
-% \begin{enumerate}
-%     \item Sin hacer inversión en hardware, se consigue un sistema más que competente frente al entorno local.
-%     \item Si el usuario quisiera, podría abrir la puerta a las suscripciones de pago, lo que le permitiría usar modelos aún más potentes y con mejores resultados, aumentando la brecha de calidad frente a la versión local. Sobre todo con respecto a los LLMs.
-% \end{enumerate}
-% De nuevo, a cambio de una dependencia total de terceros y la externalización de datos.
 
 \section{Tiempos de respuesta}
 Como se aprecia en los tiempos de la figura \ref{fig:results_plots}, el entorno en la nube tiene una latencia de respuesta global muy alta (principalmente por el excesivo tiempo consumido en la orquestación RAG). Pese a que en tareas aisladas como la transcripción de audio (STT) la nube demuestra ser notablemente más rápida frente a la ejecución local, el tiempo final se resiente. 
@@ -777,46 +435,12 @@ El único inconveniente de esta arquitectura sería la limitación en la elecci�
 %                   CONCLUSIONES Y TRABAJOS FUTUROS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \chapter{Conclusiones y trabajos futuros}
-
-% Tras finalizar el desarrollo e implementación del asistente, se extraen diversas conclusiones fundamentales sobre la viabilidad, el rendimiento y la integración de estas tecnologías.
-
-% En primer lugar, queda demostrado que actualmente es totalmente viable desplegar un flujo completo de interacción por voz, tanto en un entorno puramente local como apoyándose en la nube. Con la orquestación adecuada, se puede resolver la transcripción, búsqueda de información, razonamiento y síntesis de voz en tiempos competentes y con resultados sólidos.
-
-% A partir de la experimentación y comparativa entre ambas modalidades, se destacan los siguientes puntos clave en alusión a las tecnologías evaluadas:
-% \begin{itemize}
-%     \item \textbf{Generación y recuperación de información (RAG):} La precisión en la respuesta final recae fuertemente sobre el modelo evaluador y su criterio para seleccionar e ignorar fuentes. Las plataformas \textit{cloud} promediaron una mayor tasa de certidumbre (83.33\% de aciertos absolutos frente al 63.33\% local). No obstante, prescindir del contexto y delegar en la web expone al asistente a alucinaciones provocadas por información no determinista obtenida de internet. Por otro lado, la latencia se dispara y se pierde la privacidad de los datos.
-    
-%     \item \textbf{Síntesis de voz (TTS):} Los sistemas de la nube proporcionan una fluidez notablemente superior, manteniendo pese a ello una latencia equiparable al competente modelo local Kokoro. Aún habiendo más opciones locales, a primera vista la respuesta de AWS es la ganadora indiscutible.
-    
-%     \item \textbf{Despliegue, Privacidad y Eficiencia:} A nivel local, se destaca la simplicidad de integración y la privacidad total, aunque a costa de un catálogo más limitado y con fuerte restricción de hardware. En la nube, se obtiene una flexibilidad y potencia de modelos inalcanzable localmente, pero con una complejidad por la burocracia de los proveedores y la necesidad de confiar datos a terceros. No se puede saber con certeza la evolución de sus planes y políticas, por lo que siempre se trabaja con incertidumbre. Los planes gratuitos son perfectos para uso personal y privado. De escalar el sistema, habría que considerar el pago de ciertos servicios.
-% \end{itemize}
-
-% En definitiva, la elección entre una implementación local o en la nube depende de las prioridades del usuario: si no se dispone de un hardware potente, la única opción es la nube; si por otro lado el entorno cuenta con máquinas potentes, y se valora más la privacidad, el entorno local es la mejor opción; mientras que si se busca un compromiso entre calidad y velocidad, una opción híbrida sería la más adecuada.
-
-% Aun con todo, se ve que ambas opciones son perfectamente válidas y competitivas, y con la orquestación adecuada, se pueden conseguir resultados muy similares en términos de precisión y calidad de respuesta. La nube ofrece una mayor flexibilidad y potencia, pero a costa de una latencia más alta y la externalización de datos, mientras que el entorno local proporciona una experiencia más inmediata y privada, aunque con limitaciones en cuanto a los modelos disponibles y los requisitos de hardware.
-
-% \section{Trabajos futuros}
-% A pesar de que el sistema es funcional, quedan muchas opciones para mejorarlo y convertirlo en un producto más completo:
-
-% \begin{itemize}
-%     \item \textbf{Optimización de tiempos:} Actualmente, el sistema más rápido que se podría montar supera los 7s como tiempo de respuesta total, lo que es un poco elevado para un asistente de voz. Se podrían explorar opciones para reducir esta latencia, como usar modelos más ligeros, optimizar la orquestación o implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz.
-
-%     \item \textbf{Streaming de respuesta:} Como se ha comentado, implementar un sistema de streaming tanto para la generación de texto como para la síntesis de voz mejoraría mucho la experiencia de usuario, reduciendo la latencia percibida.
-
-%     \item \textbf{Sistema 'siempre escuchando' (Wake Word):} Actualmente, la interacción requiere una acción manual (grabar/enviar). El siguiente paso es implementar un sistema de detección de palabras clave (del estilo de 'OK Google') que mantenga el micrófono abierto en bajo consumo y solo active el proceso pesado cuando se le llame.
-    
-%     \item \textbf{Implementación en sistemas empotrados:} Mover el sistema de un PC de escritorio a un hardware dedicado y pequeño, como una Raspberry Pi o una NVIDIA Jetson. Esto permitiría tener el asistente en cualquier lugar de la casa sin depender de un ordenador encendido, acercándose más al concepto de 'altavoz inteligente'. Dependiendo del hardware, habría que delegar servicios a la nube.
-    
-%     \item \textbf{Ampliación del agente:} Mejorar la capacidad del RAG para usar volúmenes de datos mucho mayores o añadirle más herramientas MCP, aumentaría las capacidades del sistema, y no lo limitaría a preguntas y respuestas. Ahora, esto podría requerir de modelos de lenguaje más grandes.
-    
-% \end{itemize}
 \chapter{Conclusiones y trabajos futuros}
 
 Queda demostrado que es totalmente viable desplegar un flujo completo de interacción por voz tanto en local como en la nube, con resultados sólidos en tiempos competentes. Las conclusiones clave por bloque son:
 
 \begin{itemize}
-    \item \textbf{STT:} La nube es tiende a ser más rápida (0.41s vs 3.95s) pero con WER prácticamente idéntico (5.22\% local vs 6.32\% cloud). Ambos con limitaciones similares en siglas y nombres específicos.
+    \item \textbf{STT:} La nube es más rápida (0.41s vs 3.95s) pero con WER prácticamente idéntico (5.22\% local vs 6.32\% cloud). Ambos con limitaciones similares en siglas y nombres específicos.
     \item \textbf{RAG:} La nube ofrece mayor tasa de acierto en respuesta final por el modelo de embeddings (83.33\% vs 63.33\%), pero con latencia disparada y pérdida de privacidad. El evaluador local alucina cuando su contexto es escaso, pero abusar del \textit{fallback} web expone al sistema a información inestable o no determinista. Algo fácilmente arreglable con un modelo de embeddings local más potente, sin tener que recurrir a la nube.
     \item \textbf{TTS:} AWS es ganador indiscutible en naturalidad (score 90 vs 50) con latencia igual o menor que Kokoro. A no ser que la privacidad sea prioritaria, la nube gana en esta fase.
     \item \textbf{Despliegue:} Lo local garantiza privacidad total y simplicidad; la nube aporta un catálogo más potente pero con complejidad burocrática, dependencia de terceros e incertidumbre sobre sus futuras políticas. Ahora sí, los planes gratuitos actuales son suficientes para uso personal. Por lo que sin pagar (ni suscripciones ni hardware), la nube ofrece un sistema completo.
